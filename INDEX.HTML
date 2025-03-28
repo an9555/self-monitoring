@@ -1,0 +1,3523 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://i.ytimg.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日目標與現狀自我覺察記錄</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 90'%3E%3Ctext y='90' font-size='90'%3E🌠%3C/text%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* 自定義滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #374151;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #6B7280;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+
+        /* 自定義動畫 */
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+
+        /* 自定義彈跳動畫 */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate-bounce-custom {
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        /* 日曆色塊樣式 */
+        .calendar-day {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: #EEE;
+        }
+
+        .dark .calendar-day:hover {
+            background-color: #4B5563;
+        }
+
+        .calendar-day.selected {
+            background-color: #5D5CDE;
+            color: white;
+        }
+
+        .calendar-day.completed {
+            border-bottom: 3px solid #10B981;
+        }
+
+        .calendar-day.partial {
+            border-bottom: 3px solid #F59E0B;
+        }
+
+        .calendar-day.missed {
+            border-bottom: 3px solid #EF4444;
+        }
+
+        /* 情緒圖標 */
+        .mood-icon {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 進度條樣式 */
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: #E5E7EB;
+            overflow: hidden;
+        }
+        
+        .dark .progress-bar {
+            background-color: #4B5563;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #5D5CDE;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* 任務卡片樣式 */
+        .task-card {
+            transition: all 0.3s ease;
+        }
+        
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* 標籤樣式 */
+        .tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            background-color: #E5E7EB;
+            color: #4B5563;
+            margin-right: 0.5rem;
+            white-space: nowrap;
+        }
+        
+        .dark .tag {
+            background-color: #4B5563;
+            color: #E5E7EB;
+        }
+        
+        /* 輸入框焦點樣式 */
+        .input-focus:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(93, 92, 222, 0.3);
+            border-color: #5D5CDE;
+        }
+        
+        /* 標籤樣式 */
+        .category-tag {
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 12px;
+        }
+        
+        /* 根據類別設置不同顏色 */
+        .category-work { background-color: #DBEAFE; color: #1E40AF; }
+        .category-study { background-color: #E0E7FF; color: #3730A3; }
+        .category-health { background-color: #D1FAE5; color: #065F46; }
+        .category-personal { background-color: #FEF3C7; color: #92400E; }
+        .category-other { background-color: #F3E8FF; color: #6B21A8; }
+        
+        .dark .category-work { background-color: #1E40AF; color: #DBEAFE; }
+        .dark .category-study { background-color: #3730A3; color: #E0E7FF; }
+        .dark .category-health { background-color: #065F46; color: #D1FAE5; }
+        .dark .category-personal { background-color: #92400E; color: #FEF3C7; }
+        .dark .category-other { background-color: #6B21A8; color: #F3E8FF; }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 min-h-screen">
+    <!-- 檢測暗模式 -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <!-- 主容器 -->
+    <div class="flex flex-col md:flex-row h-screen">
+        <!-- 側邊導航欄 -->
+        <div class="w-full md:w-64 bg-gray-100 dark:bg-gray-800 p-4 shadow-md md:h-full overflow-auto">
+            <div class="flex items-center justify-center mb-6">
+                <h1 class="text-xl font-bold text-center text-indigo-600 dark:text-indigo-400">每日目標與自我覺察</h1>
+            </div>
+            
+            <!-- 導航選項 -->
+            <nav class="space-y-2">
+                <button class="nav-btn w-full py-2 px-4 rounded-lg flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300" data-target="daily-tracking">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>每日追蹤</span>
+                </button>
+                <button class="nav-btn w-full py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700" data-target="goal-management">
+                    <i class="fas fa-bullseye"></i>
+                    <span>目標管理</span>
+                </button>
+                <button class="nav-btn w-full py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700" data-target="self-reflection">
+                    <i class="fas fa-brain"></i>
+                    <span>自我反思</span>
+                </button>
+                <button class="nav-btn w-full py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700" data-target="progress-visualization">
+                    <i class="fas fa-chart-line"></i>
+                    <span>進度可視化</span>
+                </button>
+            </nav>
+            
+            <!-- 日期選擇器 -->
+            <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
+                <h2 class="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-300">選擇日期</h2>
+                <div class="flex justify-between items-center mb-2">
+                    <button id="prev-month" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span id="current-month" class="text-sm font-medium">2023年10月</span>
+                    <button id="next-month" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center">
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">日</div>
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">一</div>
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">二</div>
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">三</div>
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">四</div>
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">五</div>
+                    <div class="text-xs font-medium text-gray-500 dark:text-gray-400">六</div>
+                </div>
+                <div id="calendar-days" class="grid grid-cols-7 gap-1 mt-1">
+                    <!-- 日曆日期將通過 JavaScript 動態生成 -->
+                </div>
+            </div>
+            
+            <!-- 統計摘要 -->
+            <div class="mt-6 bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm">
+                <h2 class="text-sm font-semibold mb-2 text-gray-600 dark:text-gray-300">統計摘要</h2>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-500 dark:text-gray-400">總記錄天數</span>
+                        <span id="total-days" class="text-xs font-medium">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-500 dark:text-gray-400">完成任務數</span>
+                        <span id="completed-tasks" class="text-xs font-medium">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-500 dark:text-gray-400">達成目標數</span>
+                        <span id="completed-goals" class="text-xs font-medium">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-500 dark:text-gray-400">最長連續記錄</span>
+                        <span id="longest-streak" class="text-xs font-medium">0天</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要內容區 -->
+        <div class="flex-1 overflow-auto p-4">
+            <!-- 每日追蹤區塊 -->
+            <div id="daily-tracking" class="content-section">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 左側：今日動機與檢查區 -->
+                    <div>
+                        <!-- 今日 GIF 和激勵語錄 -->
+                        <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">今日靈感</h2>
+                            <div class="flex flex-col items-center">
+                                <div id="inspiration-gif" class="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 overflow-hidden">
+                                    <!-- GIF 將在這裡加載 -->
+                                    <img id="gif-image" src="" alt="每日激勵圖片" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex justify-center mb-4">
+                                    
+                                </div>
+                                <p id="motivation-quote" class="text-center italic text-gray-600 dark:text-gray-300">
+                                    <!-- 激勵語錄將在這裡顯示 -->
+                                </p>
+                                <button id="change-image-btn" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm">
+                                    <i class="fas fa-sync-alt mr-1"></i>換一則
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 能量等級與心情 -->
+                        <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">今日狀態</h2>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">今日能量等級</label>
+                                    <div class="flex items-center">
+                                        <input type="range" id="energy-level" min="0" max="10" step="1" class="w-full" value="5">
+                                        <span id="energy-value" class="ml-2 text-gray-800 dark:text-gray-200 font-medium">5</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">今日心情</label>
+                                    <div class="grid grid-cols-5 gap-2">
+                                        <button class="mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="happy">
+                                            <span class="text-xl">😊</span>
+                                            <span class="text-xs mt-1">開心</span>
+                                        </button>
+                                        <button class="mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="calm">
+                                            <span class="text-xl">😌</span>
+                                            <span class="text-xs mt-1">平靜</span>
+                                        </button>
+                                        <button class="mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="tired">
+                                            <span class="text-xl">😩</span>
+                                            <span class="text-xs mt-1">疲憊</span>
+                                        </button>
+                                        <button class="mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="anxious">
+                                            <span class="text-xl">😟</span>
+                                            <span class="text-xs mt-1">焦慮</span>
+                                        </button>
+                                        <button class="mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="motivated">
+                                            <span class="text-xl">💪</span>
+                                            <span class="text-xs mt-1">有動力</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                   
+                        <!-- MUSIC🎤 -->
+                                <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                                    <h2 class="text-lg font-semibold mb-2 text-indigo-600 dark:text-indigo-400 flex items-center justify-between">
+                                        <span>音樂播放器</span>
+                                        <button id="toggle-playlist" class="text-sm px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded hover:bg-indigo-200 dark:hover:bg-indigo-800">
+                                            <i class="fas fa-list mr-1"></i>播放清單
+                                        </button>
+                                    </h2>
+                                    
+                                    <!-- 主播放器區塊 -->
+                                    <div class="player-container">
+                                        <!-- 縮略圖和歌曲信息 -->
+                                        <div class="flex items-center mb-3">
+                                            <div class="thumbnail-container w-20 h-20 mr-3 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                                                <img id="song-thumbnail" src="" alt="歌曲縮略圖" class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 id="song-title" class="font-medium text-gray-800 dark:text-gray-200 text-sm mb-1 line-clamp-2"></h3>
+                                                <p id="channel-title" class="text-xs text-gray-500 dark:text-gray-400"></p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 進度條 -->
+                                        <div class="mb-3">
+                                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                                <span id="current-time">0:00</span>
+                                                <span id="duration">0:00</span>
+                                            </div>
+                                            <div class="progress-bar h-2 bg-gray-200 dark:bg-gray-700 rounded-full cursor-pointer" id="progress-bar">
+                                                <div id="progress-fill" class="h-full bg-indigo-600 dark:bg-indigo-500 rounded-full" style="width: 0%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- 控制按鈕 -->
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-4">
+                                                <button id="prev-song" class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                    <img width="25" height="25" src="https://img.icons8.com/nolan/25/rewind.png" alt="rewind"/>
+                                                </button>
+                                                <button id="play-pause" class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900 text-white flex items-center justify-center">
+                                                    <img width="35" height="35" src="https://img.icons8.com/nolan/25/play.png" alt="play"/>
+                                                </button>
+                                                <button id="next-song" class="text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                    <img width="25" height="25" src="https://img.icons8.com/nolan/25/fast-forward.png" alt="fast-forward"/>
+                                                </button>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <button id="loop-button" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400" title="循環播放">
+                                                    <img width="25" height="25" src="https://img.icons8.com/dotty/80/repeat.png" alt="repeat"/>
+                                                </button>
+
+                                                <button id="shuffle-button" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400" title="隨機播放">
+                                                    <img width="25" height="25" src="https://img.icons8.com/dotty/25/shuffle.png" alt="shuffle"/>
+                                                </button>
+
+                                                <button id="single-loop-button" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400" title="單曲循環">
+                                                    <img width="25" height="25" src="https://img.icons8.com/dotty/25/repeat-one.png" alt="repeat-one"/>
+                                                </button>
+
+                                                <div class="volume-container relative">
+                                                    <button id="volume-button" class="text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                        <img width="25" height="25" src="https://img.icons8.com/dotty/25/high-volume.png" alt="high-volume"/>
+                                                </button>
+
+                                                    <div class="volume-slider hidden absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-24 h-8 bg-white dark:bg-gray-700 rounded shadow p-2">
+                                                        <input type="range" id="volume-control" min="0" max="100" value="70" class="w-full">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 播放清單 (預設隱藏) -->
+                                    <div id="playlist-container" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 hidden">
+                                        <h3 class="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">播放清單</h3>
+                                        <div id="playlist" class="max-h-64 overflow-y-auto">
+                                            <!-- 播放清單項目將在這裡動態生成 -->
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 隱藏的YouTube播放器 -->
+                                    <div id="youtube-player" class="hidden"></div>
+                                </div>
+                            </div>
+                    <!-- 右側：今日任務 -->
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400">今日任務</h2>
+                                <button id="add-daily-task" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm">
+                                    <i class="fas fa-plus mr-1"></i>新增任務
+                                </button>
+                            </div>
+                            
+                            <!-- 任務列表 -->
+                            <div id="daily-tasks-container" class="space-y-3">
+                                <!-- 任務將在這裡顯示 -->
+                                <div class="text-center text-gray-500 dark:text-gray-400 py-10" id="empty-task-message">
+                                    <i class="fas fa-tasks text-3xl mb-2"></i>
+                                    <p>還沒有今日任務，點擊上方「新增任務」開始計劃你的一天。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 目標管理區塊 -->
+            <div id="goal-management" class="content-section hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
+                    <!-- 左側：目標列表 -->
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400">我的目標</h2>
+                                <button id="add-goal" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm">
+                                    <i class="fas fa-plus mr-1"></i>新增目標
+                                </button>
+                            </div>
+                            
+                            <!-- 目標列表 -->
+                            <div id="goals-container" class="space-y-3">
+                                <!-- 目標將在這裡顯示 -->
+                                <div class="text-center text-gray-500 dark:text-gray-400 py-10" id="empty-goal-message">
+                                    <i class="fas fa-bullseye text-3xl mb-2"></i>
+                                    <p>還沒有設定目標，點擊上方「新增目標」開始規劃你的人生目標。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 中間：子任務列表 -->
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <!-- 右側：目標詳情 -->
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400">目標詳情</h2>
+                                <div>
+                                    <button id="edit-goal" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm" disabled="">
+                                        <i class="fas fa-edit mr-1"></i>編輯
+                                    </button>
+                                    <button id="delete-goal" class="px-3 py-1 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 text-red-700 dark:text-red-300 rounded-lg text-sm ml-2" disabled="">
+                                        <i class="fas fa-trash mr-1"></i>刪除
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- 目標詳情 -->
+                            <div id="goal-details-container">
+                                <!-- 目標詳情將在這裡顯示 -->
+                                <div class="text-center text-gray-500 dark:text-gray-400 py-10" id="empty-goal-details">
+                                    <i class="fas fa-file-alt text-3xl mb-2"></i>
+                                    <p>請選擇一個目標來查看詳情。</p>
+                                </div>
+                                
+                                <div id="goal-details" class="hidden">
+                                    <div class="mb-4">
+                                        <h3 id="goal-detail-title" class="text-xl font-bold mb-2">目標標題</h3>
+                                        <div class="flex space-x-2 mb-2">
+                                            <span id="goal-detail-category" class="category-tag category-work">工作</span>
+                                            <span id="goal-detail-deadline" class="text-sm text-gray-500 dark:text-gray-400"><i class="far fa-calendar-alt mr-1"></i>2023-12-31</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <div class="flex justify-between text-sm mb-1">
+                                                <span>目標進度</span>
+                                                <span id="goal-detail-progress-text">0%</span>
+                                            </div>
+                                            <div class="progress-bar">
+                                                <div id="goal-detail-progress" class="progress-fill" style="width: 0%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <h4 class="text-lg font-medium mb-3">目標原因 (Why)</h4>
+                                        <p id="goal-detail-why" class="text-sm bg-gray-50 dark:bg-gray-700 p-2 rounded">為什麼想達成這個目標？</p>
+                                    </div>
+                                    
+                                    <div class="border-t dark:border-gray-700 pt-4">
+                                        <h4 class="text-lg font-medium mb-3">SMART 目標框架</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                                <h5 class="font-medium text-primary mb-1">具體 (Specific)</h5>
+                                                <p id="goal-detail-specific" class="text-sm">具體描述</p>
+                                            </div>
+                                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                                <h5 class="font-medium text-primary mb-1">可衡量 (Measurable)</h5>
+                                                <p id="goal-detail-measurable" class="text-sm">衡量標準</p>
+                                            </div>
+                                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                                <h5 class="font-medium text-primary mb-1">可達成 (Achievable)</h5>
+                                                <p id="goal-detail-achievable" class="text-sm">可行性</p>
+                                            </div>
+                                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                                                <h5 class="font-medium text-primary mb-1">相關性 (Relevant)</h5>
+                                                <p id="goal-detail-relevant" class="text-sm">與自身發展的相關性</p>
+                                            </div>
+                                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-3 md:col-span-2">
+                                                <h5 class="font-medium text-primary mb-1">時間限制 (Time-bound)</h5>
+                                                <p id="goal-detail-timebound" class="text-sm">時間限制</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                            <div>
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mt-4">
+                                <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-semibold text-indigo-600 dark:text-indigo-400">子任務</h2>
+                                <button id="add-subtask" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm" disabled="">
+                                    <i class="fas fa-plus mr-1"></i>新增子任務
+                                </button></div>
+                            
+                            
+                            <!-- 子任務列表 -->
+                            <div id="subtasks-container" class="space-y-3">
+                                <!-- 子任務將在這裡顯示 -->
+                                <div class="text-center text-gray-500 dark:text-gray-400 py-10" id="empty-subtask-message">
+                                    <i class="fas fa-tasks text-3xl mb-2"></i>
+                                    <p>請選擇一個目標來查看或添加子任務。</p>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                    
+                </div>
+            </div>
+
+            <!-- 自我反思區塊 -->
+            <div id="self-reflection" class="content-section hidden">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 左側：反思問題 -->
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">自我反思</h2>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">今天做得好的地方</label>
+                                    <textarea id="reflection-good" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="3" placeholder="請具體描述，例如：今天專注力不錯，完成了比預期多的線上課程。"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">今天可以改進的地方</label>
+                                    <textarea id="reflection-improve" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="3" placeholder="請具體描述，並思考原因，例如：早上記憶訓練時容易分心，可能是因為睡眠不足。"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">今天學到的經驗或發現</label>
+                                    <textarea id="reflection-lessons" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="3" placeholder="例如：發現番茄工作法對我記英文單字很有幫助。"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">明天可以調整的行動</label>
+                                    <textarea id="reflection-tomorrow" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="3" placeholder="根據今天的反思，明天可以做哪些調整？例如：明天提早半小時睡覺，看看是否能提升早上的專注力。"></textarea>
+                                </div>
+                            </div>
+                            <!-- 反思提示 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5">
+                    <h2 class="text-xl font-bold mb-4">反思提示</h2>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                            <p class="text-sm text-blue-800 dark:text-blue-200">1. 專注於你所能控制的事情，接受你無法控制的。</p>
+                        </div>
+                        <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+                            <p class="text-sm text-purple-800 dark:text-purple-200">2. 問自己：「這件事在五年後還重要嗎？」</p>
+                        </div>
+                        <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
+                            <p class="text-sm text-green-800 dark:text-green-200">3. 每一個挑戰都是成長的機會。</p>
+                        </div>
+                        <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+                            <p class="text-sm text-yellow-800 dark:text-yellow-200">4. 慶祝小勝利，它們會累積成大成就。</p>
+                        </div>
+                        <div class="p-3 bg-red-50 dark:bg-red-900/20 rounded-md">
+                            <p class="text-sm text-red-800 dark:text-red-200">5. 記住，完美是好的敵人。「足夠好」往往就足夠了。</p>
+                        </div>
+                    </div>
+                </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右側：情緒覺察 -->
+                    <div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+                            <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">情緒覺察</h2>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">今天主要的情緒</label>
+                                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="happy">
+                                            <span class="text-xl">😊</span>
+                                            <span class="text-xs mt-1">開心</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="calm">
+                                            <span class="text-xl">😌</span>
+                                            <span class="text-xs mt-1">平靜</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="tired">
+                                            <span class="text-xl">😩</span>
+                                            <span class="text-xs mt-1">疲憊</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="anxious">
+                                            <span class="text-xl">😟</span>
+                                            <span class="text-xs mt-1">焦慮</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="motivated">
+                                            <span class="text-xl">💪</span>
+                                            <span class="text-xs mt-1">有動力</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="sad">
+                                            <span class="text-xl">😢</span>
+                                            <span class="text-xs mt-1">悲傷</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="angry">
+                                            <span class="text-xl">😠</span>
+                                            <span class="text-xs mt-1">憤怒</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="excited">
+                                            <span class="text-xl">🤩</span>
+                                            <span class="text-xs mt-1">興奮</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="confused">
+                                            <span class="text-xl">😕</span>
+                                            <span class="text-xs mt-1">困惑</span>
+                                        </button>
+                                        <button class="reflection-mood-btn p-2 rounded-lg flex flex-col items-center hover:bg-gray-100 dark:hover:bg-gray-700" data-mood="grateful">
+                                            <span class="text-xl">🙏</span>
+                                            <span class="text-xs mt-1">感恩</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">選擇的情緒強度</label>
+                                    <div id="selected-moods-container" class="space-y-2">
+                                        <!-- 選擇的情緒將在這裡顯示 -->
+                                        <div class="text-gray-500 dark:text-gray-400 text-sm italic">請從上方選擇一或多個情緒</div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">可能影響情緒的事件</label>
+                                    <textarea id="emotion-triggers" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="3" placeholder="今天發生了什麼事情可能影響了您的情緒？例如：完成了一個重要的工作任務，與朋友進行了一次愉快的談話等"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                            <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">認知行為療法 (CBT) 記錄</h2>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">今天出現的負面想法</label>
+                                    <textarea id="negative-thoughts" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="記錄下您今天意識到的比較困擾的負面想法，例如：「我今天又沒有完全達成目標，我真是太沒用了。」"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">觸發情境</label>
+                                    <textarea id="trigger-situation" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="這個想法是在什麼情況下出現的？例如：在晚上回顧今天目標完成情況時"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">對這個想法的反駁</label>
+                                    <textarea id="thought-rebuttal" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="請嘗試挑戰這個負面想法，尋找支持相反觀點的證據。例如：「雖然今天沒有完全達成所有目標，但我還是完成了一些，而且我每天都在努力進步。」"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">更平衡的想法</label>
+                                    <textarea id="balanced-thought" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="用一個更理性、更積極的想法來取代原來的負面想法。例如：「我正在努力成為更好的自己，每天進步一點點就已經很棒了。」"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex justify-end">
+                                <button id="save-reflection" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">
+                                    <i class="fas fa-save mr-1"></i>保存反思
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 進度可視化區塊 -->
+            <div id="progress-visualization" class="content-section hidden">
+                <!-- 時間範圍選擇 -->
+                <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                    <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">數據範圍</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="date-range-btn px-4 py-2 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-medium" data-range="7">最近7天</button>
+                        <button class="date-range-btn px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium" data-range="30">最近30天</button>
+                        <button class="date-range-btn px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium" data-range="90">最近90天</button>
+                        <div class="flex items-center space-x-2 ml-auto">
+                            <label class="text-sm text-gray-700 dark:text-gray-300">自訂範圍：</label>
+                            <input type="date" id="date-range-start" class="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm">
+                            <span class="text-gray-500">至</span>
+                            <input type="date" id="date-range-end" class="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm">
+                            <button id="apply-custom-range" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm">應用</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 左側：任務完成率圖表 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">每日任務完成率</h2>
+                        <div class="h-64">
+                            <canvas id="task-completion-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 右側：能量等級與心情趨勢 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">能量等級趨勢</h2>
+                        <div class="h-64">
+                            <canvas id="energy-level-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                    <!-- 左側：目標進度圖表 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">目標進度分析</h2>
+                        <div class="h-64">
+                            <canvas id="goal-progress-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- 右側：情緒分佈 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                        <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">情緒分佈</h2>
+                        <div class="h-64">
+                            <canvas id="mood-distribution-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 數據洞察與建議 -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mt-6">
+                    <h2 class="text-lg font-semibold mb-4 text-indigo-600 dark:text-indigo-400">數據洞察與建議</h2>
+                    <div id="insights-container" class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p class="text-gray-500 dark:text-gray-400 text-center">請先選擇日期範圍並使用應用程式一段時間，以獲取個人化的數據洞察。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模態框 - 新增每日任務 -->
+    <div id="add-daily-task-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
+            <h2 class="text-xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">新增每日任務</h2>
+            <form id="daily-task-form" class="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">新增任務</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">任務名稱</label>
+                        <input type="text" id="task-title" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">優先級</label>
+                        <select id="task-priority" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100">
+                            <option value="high">高</option>
+                            <option value="medium">中</option>
+                            <option value="low">低</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">類別</label>
+                        <select id="task-category" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100">
+                            <option value="work">工作</option>
+                            <option value="study">學習</option>
+                            <option value="health">健康</option>
+                            <option value="personal">個人</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">備註</label>
+                        <textarea id="task-notes" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100" rows="2"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">相關連結</label>
+                        <input type="url" id="task-link" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-100">
+                    </div>
+
+                    
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="cancel-task" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                        取消
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg">
+                        確定
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 模態框 - 新增目標 -->
+    <div id="add-goal-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">新增目標</h2>
+            <form id="goal-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-title">目標標題 *</label>
+                    <input type="text" id="goal-title" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" placeholder="輸入目標標題" required="">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-why">目標原因 (Why) *</label>
+                    <textarea id="goal-why" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="為什麼想達成這個目標？" required=""></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-category">分類</label>
+                        <select id="goal-category" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base">
+                            <option value="work">工作</option>
+                            <option value="study">學習</option>
+                            <option value="health">健康</option>
+                            <option value="personal">個人</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-deadline">截止日期</label>
+                        <input type="date" id="goal-deadline" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base">
+                    </div>
+                </div>
+                
+                <div class="border-t dark:border-gray-700 my-4 pt-4">
+                    <h3 class="font-medium text-gray-700 dark:text-gray-300 mb-3">SMART 目標框架</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-specific">具體 (Specific) *</label>
+                            <textarea id="goal-specific" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="具體描述你想達成什麼？" required=""></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-measurable">可衡量 (Measurable) *</label>
+                            <textarea id="goal-measurable" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="如何衡量進度和成功？" required=""></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-achievable">可達成 (Achievable) *</label>
+                            <textarea id="goal-achievable" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="這個目標是否實際可行？你擁有實現它的資源和能力嗎？" required=""></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-relevant">相關性 (Relevant) *</label>
+                            <textarea id="goal-relevant" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="這個目標與你的整體發展方向是否一致？" required=""></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="goal-timebound">時間限制 (Time-bound) *</label>
+                            <textarea id="goal-timebound" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="你計劃在什麼時間範圍內完成目標？" required=""></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" id="cancel-goal" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg">取消</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">新增</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 模態框 - 新增子任務 -->
+    <div id="add-subtask-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
+            <h2 class="text-xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">新增子任務</h2>
+            <form id="subtask-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="subtask-title">子任務名稱 *</label>
+                    <input type="text" id="subtask-title" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" placeholder="輸入子任務名稱" required="">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="subtask-description">描述 (選填)</label>
+                    <textarea id="subtask-description" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" rows="2" placeholder="子任務的補充說明"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="subtask-link">相關連結 (選填)</label>
+                    <input type="url" id="subtask-link" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base" placeholder="https://example.com">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300" for="subtask-deadline">截止日期 (選填)</label>
+                    <input type="date" id="subtask-deadline" class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 input-focus text-base">
+                </div>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" id="cancel-subtask" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg">取消</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg">新增</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 數據模型
+        let data = {
+            tasks: {}, // 每日任務, 格式: { date1: [...tasks], date2: [...tasks] }
+            goals: [], // 目標列表
+            subtasks: {}, // 子任務, 格式: { goalId1: [...subtasks], goalId2: [...subtasks] }
+            dailyState: {}, // 每日狀態 (能量等級、心情等), 格式: { date1: {energy: 5, mood: 'happy'}, date2: {...} }
+            reflections: {} // 每日反思, 格式: { date1: {...reflection}, date2: {...reflection} }
+        };
+
+        // 當前選擇的日期、目標等
+        let currentDate = new Date();
+        let currentGoalId = null;
+        let isEditingGoal = false;
+        let dateRangeForVisualization = 7; // 默認顯示最近7天的數據
+
+        // 激勵語錄列表
+        const motivationalQuotes = [
+           "目標不是用來折磨自己的，而是用來幫助自己成長的。過程中的每一步都很重要，請記得為每個小進步而慶祝。🌱",
+        "完成任何重大目標都需要時間，耐心和決心。每天進步一點點，日積月累，終能實現目標。⏳",
+        "有時候，即使只是堅持日常工作，也是一種成就。善待自己，相信自己的能力。💪",
+        "不要因為一時的停滯而放棄，這只是旅途中的短暫休息。繼續前進，你會發現自己比想像的更堅強。🌟",
+        "實現目標的過程中，你學到的遠比最終結果更有價值。享受這個旅程！🚀",
+        "把大目標分解成小步驟，每天專注當下可以完成的小任務，慢慢地就會看到大改變。📝",
+        "每天進步1%，一年後你將成為37倍的自己。不要小看每天的微小進步。📈",
+        "成功並非一蹴而就，而是由無數個微小的努力所構成。讓每一個努力都變得有意義。💡",
+        "不管多小的步伐，都比停滯不前強。每天向前邁出一小步，你會發現，距離目標越來越近。👣",
+        "自律是一種力量，能讓你在迷茫中找到方向，讓你在困難中保持堅持。🔑",
+        "生活中沒有完美的時機，只有你不斷努力的過程。今天的努力，將決定明天的你。⏰",
+        "每一次的努力都是為了更好的未來，請相信你的努力從來不會白費。🌅",
+        "無論多小的進步，都值得慶祝。這是向目標邁進的一部分。🎉",
+        "當你覺得自己快放棄的時候，記住為自己付出的努力已經有了成果。💪",
+        "成功不是一瞬間的決定，而是長時間的堅持與努力。💯",
+        "你現在做的每一件事，都是成為更好的自己的基石。🔨",
+        "目標是指引你的燈塔，但堅持是讓你到達的船。⛵",
+        "不要因為遇到困難就懷疑自己，而應該相信困難只是成功的一部分。🔥",
+        "每一天的努力，都是你進步的基石。一步步，接近你的夢想。🧱",
+        "只有經歷過風雨，才能見到彩虹。每一個挑戰，都是讓你更強大的機會。🌈",
+        "沒有什麼比持續的努力更值得投資。今天的付出是明天的回報。⏳",
+        "目標不應該是壓力，而是一種激勵。讓它引領你走向更高的巔峰。🚀",
+        "每一個小小的改變，都是自我成長的一步。記住，成功始於微小的決定。⚡",
+        "不必焦慮未來，專注於當下，將今天的事情做好，你已經在走向成功的路上。🔮",
+        "只要你不放棄，你就永遠在路上，永遠有機會達成目標。🌟",
+        "請對自己有信心，你的潛力遠遠超過你自己的想像。💫",
+        "成為你想成為的人，不是因為你有條件，而是因為你堅持不懈。💡",
+        "無論你現在的進度如何，始終記住，你比你以為的還要強大。⚔️",
+        "每一次的失敗，都是學習的契機。不要因為它們而停下來。🛠️",
+        "堅持讓你更加成熟，智慧和自信也在這個過程中累積。🌱",
+        "目標不該讓你焦慮，應該激發你找到實現它的動力。💥",
+        "每一天都是新的開始，讓每一天的努力積累成改變的力量。⏰",
+        "你的目標就像一個方向盤，只要不放棄，就能引導你達到夢想的彼岸。🚗",
+        "每一步都在進步，無論多慢，都在接近終點。⛰️",
+        "自律是一種能力，也是一種美德，它會讓你的人生充滿穩定和成功。💪",
+        "讓每一次努力都充滿意義，無論結果如何，過程本身就是一種成就。🎯",
+        "只要不停地學習和進步，成功是必然的。📚",
+        "每一個錯誤都是成功的一部分，學會從中汲取教訓。📝",
+        "別急於看到成果，享受這個過程，因為過程本身會帶來最大的成長。🌻",
+        "目標是為了讓你成為更好的自己，而不是讓你感到壓力。🎈",
+        "把注意力放在每一個小的進步上，而不是遙不可及的最終目標。🔍",
+        "失敗並不可怕，放棄才是最大的失敗。💥",
+        "你做的每一點努力，都是為了未來的你鋪路。🛣️",
+        "把今天做好，你就已經走在成功的道路上。🚶‍♀️",
+        "目標永遠是為了指引你走向更好的生活，而不是讓你束縛。🚀",
+        "人生的成功，是由一次又一次的小步驟和堅持構成的。🗝️",
+        "當你開始走動，路就會自己出現。邁出第一步，讓自己進步。👣",
+        "當你放下恐懼，勇敢去做，每一步都會向目標靠近。🦋",
+        "成功不是等來的，而是靠堅持和努力逐步達成的。🎯",
+        "成功是由無數個小成就堆砌而成，今天的努力，是明天的勝利。🏆",
+        "每一次的努力，都是為了讓自己變得更好。不要放棄，你正在進步。🌟",
+        "不要害怕失敗，它是成功的一部分。每一次的失敗，都是向成功更近一步。🚀"
+        ];
+
+        // 完成任務時的隨機訊息
+        const completionMessages = {
+            dailyTask: [
+                "我今天選擇了行動而非拖延，這本身就是勝利。💪",
+                "每個完成的小任務都是我意志力的證明，做得好！👏",
+                "我遵守了對自己的承諾，這展現了我的自律和決心。🌟",
+                "我正在建立新的神經路徑，每次完成任務都在強化積極的習慣。🧠",
+                "即使只是一頁書或一分鐘冥想，我選擇了進步而非原地不動。📖🧘",
+                "今天的小成就是明天大成就的基石，我正在打好基礎。🏗️",
+                "我沒有尋找完美的時機，而是創造了行動的時刻。⏳",
+                "完成這個任務證明我比昨天的自己更強大一點。💥",
+                "我選擇了面對而非逃避，這是勇氣的表現。🦸",
+                "每個已完成的項目都是我掌控自己生活的證據，我為自己感到驕傲。🏆",
+                "我今天完成了所有計劃任務，這證明我的執行力正在提升！🚀",
+                "每一個完成的小任務都是我自律之路上的勝利。🏆",
+                "我正在建立一致性，這比完美更重要。✨",
+                "今天的我比昨天更自律，我為此感到自豪！🌟",
+                "我成功地管理了我的時間，這是我能力的體現。🎯",
+                "每個完成的任務都證明我能夠信守對自己的承諾。🔐",
+                "我正在培養持續行動的能力，這將帶來長遠的改變。🌳",
+                "今天的努力為明天的成功奠定了基礎。🏗️",
+                "我不需要完美，我只需要持續前進。🚶♂️",
+                "我的自律能力正在日漸增強，我能感受到這種進步。📊",
+                "完成今天的任務清單讓我感到充實和滿足。😌",
+                "我的行動證明了我對自己目標的承諾。🛡️",
+                "我有能力做到我設定的目標，今天再次證明了這一點！💎",
+                "我的自律不依賴於動力，而是源於我的承諾。🔧",
+                "今天的任務完成情況反映了我內在的力量。💥",
+                "我正在建立良好的習慣，這些習慣將塑造我的未來。🌟",
+                "即使是小任務的完成也值得慶祝，它們共同構成了大的成就。🎊",
+                "我的專注力和執行力正在提升，這是我能感受到的變化！💡",
+                "我為自己今天的自律感到驕傲。✨",
+                "每完成一個任務，我就更接近我理想中的自己。👤",
+                "我做到了今天的承諾，這是我值得信賴的證明。🤝",
+                "我能夠在困難中保持行動，這展示了我的韌性。⛓️",
+                "今天的成功執行建立了明天更強大的基礎。🌅",
+                "我的自律是一種選擇，今天我再次做出了正確的選擇。⚖️",
+                "我能夠堅持我的計劃，這是我性格中的強項。💪",
+                "每一個完成的任務都是對自我懷疑的有力反擊。🎯",
+                "我正在通過持續的小行動創造巨大的變化。🌪️",
+                "我的自律能力正在成為我性格的一部分。🧩",
+                "我今天的表現證明我能夠管理自己的生活。🗺️",
+                "我正在創造我想要的生活，一個任務一次。✨",
+            ],
+            subtask: [
+                "這個子任務的完成讓我離最終目標又近了一步，值得慶祝！🎉",
+                "我正在拆解大象，一次吃一口，這證明了我的策略思維。🐘",
+                "完成這個環節證明我有能力持續前進，而不僅僅是開始。🚶",
+                "我不僅有願景，還有執行力，這是許多人所缺乏的品質。👁️",
+                "這個子任務可能看似微小，但它是我成功拼圖中不可或缺的一片。🧩",
+                "我正在用行動証明：進步不需要完美，只需要持續。📈",
+                "每個子任務都在鞏固我的技能和自信，我正在成長。🌱",
+                "這不僅是一個被勾掉的項目，而是我堅韌性格的體現。✔️",
+                "我解決了這個部分，這證明我有面對更大挑戰的能力。🛠️",
+                "即使遇到阻力，我依然完成了這個環節，這顯示了我的韌性。💪",
+                "這個子任務的完成將我帶得更接近我的大目標！🎯",
+                "我剛完成的步驟是我成功之路上的重要一步。🔨",
+                "每個子任務的完成都證明我的大目標是可達成的。🔍",
+                "我正在系統性地實現我的夢想，一步一步地。👣",
+                "這個子任務的完成展示了我的方法論是有效的。🔧",
+                "我能夠分解並征服複雜的目標，這是一種強大的能力！💡",
+                "我離我的目標更近了一步，這是實實在在的進展。📊",
+                "我的策略正在發揮作用，我能看到結果。✨",
+                "這個子任務的完成為我的目標奠定了堅實的基礎。🧱",
+                "我擅長將大目標分解成可管理的部分，並逐一完成。💪",
+                "我的進展是實際可見的，這個子任務就是證明！🎯",
+                "我能夠在不同的子任務之間保持專注，這是成功的關鍵。🔑",
+                "我正在建立完成大目標所需的動力。💥",
+                "每個子任務的完成都是我能力的體現。🌟",
+                "我正在證明我可以長期投入於重要的目標。🌳",
+                "這個子任務的完成是我整體計劃的重要組成部分。🧩",
+                "我的耐心和堅持正在得到回報。⌛",
+                "這個子任務的完成是我對自己承諾的履行。🤲",
+                "我具有完成複雜目標的能力，這個子任務就是證明！🎓",
+                "我正在一步步地將我的想法變為現實。👣",
+                "這個子任務的完成為我的大目標注入了新的能量！💥",
+                "我能夠在看不到立即回報的情況下保持投入。🌠",
+                "我正在建立達成目標所需的技能和習慣。🎓",
+                "這個子任務的完成證明了我的方向是正確的。🧭",
+                "我的系統性方法正在帶來實際的結果。⚙️",
+                "我正在成為一個善於完成目標的人！🏆",
+                "這個子任務的完成讓我更有信心面對剩下的挑戰。💪",
+                "我的進展可能緩慢但穩定，這是成功的節奏。⏳",
+                "我正在培養卓越的執行能力，這個子任務就是證明！💼",
+    "我的大目標正在通過這些小步驟變得更加真實。🗺️"
+            ],
+            goalComplete: [
+                "100%！我不僅設定了目標，還全力以赴地實現了它。這就是我的實力。💯",
+                "完整地執行了計劃，這證明我具備了遠超常人的決心和執行力。📊",
+                "看看這個完整的進度表！我證明了自己是言出必行的人。📝",
+                "從0到100%，我用行動重新定義了自己的可能性界限。🚀",
+                "這不僅是一張完成的清單，而是我個人成長和自律的見證。📜",
+                "我克服了所有的內在阻力，達成了全部目標。這種能力會轉化為生活的各個方面。🌈",
+                "100%完成率！我已經證明自己能夠制定計劃並完全執行它。🎯",
+                "我沒有找藉口，沒有半途而廢，而是全力以赴。這種成就感無可替代。🏅",
+                "這張完整的進度表代表我選擇了卓越而非平庸。為自己喝彩！🥂",
+                "從計劃到完成，我掌控了整個過程。這種掌控力會持續影響我未來的成就。🕹️",
+                "我實現了100%的目標進度，這是我自律和堅持的完美證明！🏅",
+                "從0%到100%，我走完了整個旅程，這是我能力的體現！🚶",
+                "我完成了所有的進度指標，這證明我能夠從頭到尾執行計劃！📋",
+                "100%的完成率代表了我對自己承諾的完全兌現！🤝",
+                "我證明了我不只是開始者，更是完成者！🏁",
+                "這個100%的追蹤表是我自律和專注的視覺證明！📊",
+                "我成功地將目標從願望轉變為現實！🌟",
+                "這個完整的進度表代表了我的決心和毅力！💪",
+                "我能夠全面執行計劃，這是我系統性思維的體現！🧠",
+                "100%的完成率是我與自己對話的最佳方式！🗣️",
+                "我不僅設定了目標，還完整地實現了它！🌌",
+                "這個完整的進度表將成為我未來目標的動力源泉！⚡",
+                "我的執行力已經達到了一個新的高度！🏔️",
+                "我證明了我能夠在長期目標上保持專注直到完成！⌛",
+                "這個100%的追蹤表代表了我克服了所有可能的阻礙！🛤️",
+                "我的自律和堅持創造了這個完美的完成率！💯",
+                "我能夠兌現對自己的承諾，這是我最重要的品質之一！🤲",
+                "這個完整的進度表是我意志力的見證！💪",
+                "我做到了我設定的一切，這證明了我的潛力！⚡",
+                "從部分到整體，我完成了每一個環節！🧩",
+                "100%的完成不是運氣，而是我堅持不懈的結果！✨",
+                "我能夠一絲不苟地執行計劃，這是卓越的標志！🏅",
+                "這個完整的進度表將成為我自信的源泉！💎",
+                "我的專注和執行力達到了100%，這是值得慶祝的成就！🎉",
+                "我完成了所有環節，這證明了我的全面性思維！🌐",
+                "這個100%的追蹤表是我對自己承諾的完美實現！✅",
+                "我證明了即使面對挑戰，我也能夠達成目標！⛰️",
+                "這個完整的進度表是我自我管理能力的體現！🗂️",
+                "我不僅有夢想，還有將夢想變為現實的能力！🌌",
+                "100%的完成率是我給自己最好的禮物！🎀",
+            ]
+        };
+
+        // GIF 關鍵詞列表（用於隨機生成激勵 GIF）
+        const gifKeywords = [
+            "motivation", "achievement", "success", "productivity", 
+            "growth mindset", "perseverance", "positive", "determination",
+            "focus", "progress", "goals", "inspiration"
+        ];
+
+        // 工具函數：格式化日期為 YYYY-MM-DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // 工具函數：從 YYYY-MM-DD 格式解析日期
+        function parseDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        // 工具函數：獲取隨機數字
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // 工具函數：獲取隨機元素
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        // 工具函數：生成唯一ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        }
+
+        // 工具函數：格式化為中文月份顯示
+        function formatMonthYear(date) {
+            return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+        }
+
+        // 工具函數：顯示訊息框
+        function showMessageBox(message, type = 'default') {
+            // 創建外層遮罩
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50';
+            alertDiv.id = 'alert-box';
+
+            // 創建提示框內容
+            const alertContent = document.createElement('div');
+            let borderClass = '';
+
+            // 根據類型設置不同的邊框樣式
+            if (type === 'dailyTask') {
+                borderClass = 'border-4 border-yellow-400 border-dashed';
+            } else if (type === 'subtask') {
+                borderClass = 'border-4 border-lime-400 border-dashed';
+            } else if (type === 'goalComplete') {
+                borderClass = 'border-4 border-green-400 border-dashed';
+            }
+
+            alertContent.className = `bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-md mx-4 animate-fade-in ${borderClass}`;
+
+            // 訊息內容
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'text-center mb-4 text-lg';
+            messageDiv.textContent = message;
+
+            // 關閉按鈕
+            const closeButton = document.createElement('button');
+            closeButton.className = 'block mx-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700';
+            closeButton.textContent = '關閉';
+            closeButton.onclick = () => {
+                document.body.removeChild(alertDiv);
+            };
+
+            // 組合元素
+            alertContent.appendChild(messageDiv);
+            alertContent.appendChild(closeButton);
+            alertDiv.appendChild(alertContent);
+            document.body.appendChild(alertDiv);
+
+            // 自動關閉（5秒後）
+            setTimeout(() => {
+                if (document.body.contains(alertDiv)) {
+                    document.body.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+
+        // 初始化數據
+        function initializeData() {
+            // 嘗試從 localStorage 加載數據
+            const savedData = localStorage.getItem('dailyGoalTracker');
+            if (savedData) {
+                try {
+                    data = JSON.parse(savedData);
+                } catch (e) {
+                    console.error('無法解析保存的數據:', e);
+                    // 使用默認數據結構
+                }
+            }
+
+            // 確保所有必要的數據結構都存在
+            if (!data.tasks) data.tasks = {};
+            if (!data.goals) data.goals = [];
+            if (!data.subtasks) data.subtasks = {};
+            if (!data.dailyState) data.dailyState = {};
+            if (!data.reflections) data.reflections = {};
+
+            // 保存初始數據
+            saveData();
+        }
+
+        // 保存數據到 localStorage
+        function saveData() {
+            try {
+                localStorage.setItem('dailyGoalTracker', JSON.stringify(data));
+            } catch (e) {
+                console.error('保存數據失敗:', e);
+                showMessageBox('數據保存失敗，請檢查您的瀏覽器設置或清理一些空間。', 'error');
+            }
+        }
+
+        // 更新統計摘要
+        function updateStatsSummary() {
+            // 總記錄天數
+            const totalDays = Object.keys(data.dailyState).length;
+            document.getElementById('total-days').textContent = totalDays;
+
+            // 完成任務數
+            let completedTasksCount = 0;
+            Object.values(data.tasks).forEach(dayTasks => {
+                dayTasks.forEach(task => {
+                    if (task.completed) completedTasksCount++;
+                });
+            });
+            document.getElementById('completed-tasks').textContent = completedTasksCount;
+
+            // 達成目標數
+            const completedGoalsCount = data.goals.filter(goal => goal.progress >= 100).length;
+            document.getElementById('completed-goals').textContent = completedGoalsCount;
+
+            // 最長連續記錄 (簡化計算，只檢查是否有連續的日期記錄)
+            let longestStreak = 0;
+            if (totalDays > 0) {
+                // 獲取所有有記錄的日期並排序
+                const dates = Object.keys(data.dailyState).map(parseDate).sort((a, b) => a - b);
+                
+                let currentStreak = 1;
+                let maxStreak = 1;
+                
+                for (let i = 1; i < dates.length; i++) {
+                    const prevDate = dates[i - 1];
+                    const currDate = dates[i];
+                    
+                    // 檢查日期是否連續（相差一天）
+                    const dayDiff = Math.round((currDate - prevDate) / (1000 * 60 * 60 * 24));
+                    
+                    if (dayDiff === 1) {
+                        currentStreak++;
+                        maxStreak = Math.max(maxStreak, currentStreak);
+                    } else {
+                        currentStreak = 1;
+                    }
+                }
+                
+                longestStreak = maxStreak;
+            }
+            document.getElementById('longest-streak').textContent = `${longestStreak}天`;
+        }
+
+        // 更新日曆視圖
+        function updateCalendar() {
+            const calendarContainer = document.getElementById('calendar-days');
+            calendarContainer.innerHTML = '';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // 更新當前月份顯示
+            document.getElementById('current-month').textContent = formatMonthYear(new Date(year, month, 1));
+            
+            // 獲取當月第一天是星期幾 (0-6)
+            const firstDay = new Date(year, month, 1).getDay();
+            
+            // 獲取當月的天數
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // 填充日曆前的空白
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                calendarContainer.appendChild(emptyDay);
+            }
+            
+            // 填充日曆天數
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayDate = new Date(year, month, i);
+                const dateStr = formatDate(dayDate);
+                const isToday = dateStr === todayStr;
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = `calendar-day ${isToday ? 'selected' : ''}`;
+                dayElement.textContent = i;
+                dayElement.dataset.date = dateStr;
+                
+                // 檢查任務完成情況
+                if (data.tasks[dateStr]) {
+                    const tasks = data.tasks[dateStr];
+                    if (tasks.length > 0) {
+                        const completed = tasks.filter(task => task.completed).length;
+                        
+                        if (completed === tasks.length && tasks.length > 0) {
+                            dayElement.classList.add('completed');
+                        } else if (completed > 0) {
+                            dayElement.classList.add('partial');
+                        } else {
+                            dayElement.classList.add('missed');
+                        }
+                    }
+                }
+                
+                // 添加情緒圖標（如果有）
+                if (data.dailyState[dateStr] && data.dailyState[dateStr].mood) {
+                    const moodIcon = document.createElement('span');
+                    moodIcon.className = 'mood-icon';
+                    
+                    // 根據心情設置不同的顏色
+                    let moodEmoji = '';
+                    let bgColor = '';
+                    
+                    switch (data.dailyState[dateStr].mood) {
+                        case 'happy':
+                            moodEmoji = '😊';
+                            bgColor = 'bg-yellow-200';
+                            break;
+                        case 'calm':
+                            moodEmoji = '😌';
+                            bgColor = 'bg-blue-200';
+                            break;
+                        case 'tired':
+                            moodEmoji = '😩';
+                            bgColor = 'bg-gray-200';
+                            break;
+                        case 'anxious':
+                            moodEmoji = '😟';
+                            bgColor = 'bg-red-200';
+                            break;
+                        case 'motivated':
+                            moodEmoji = '💪';
+                            bgColor = 'bg-green-200';
+                            break;
+                        case 'sad':
+                            moodEmoji = '😢';
+                            bgColor = 'bg-blue-300';
+                            break;
+                        case 'angry':
+                            moodEmoji = '😠';
+                            bgColor = 'bg-red-300';
+                            break;
+                        case 'excited':
+                            moodEmoji = '🤩';
+                            bgColor = 'bg-pink-200';
+                            break;
+                        case 'confused':
+                            moodEmoji = '😕';
+                            bgColor = 'bg-purple-200';
+                            break;
+                        case 'grateful':
+                            moodEmoji = '🙏';
+                            bgColor = 'bg-teal-200';
+                            break;
+                        default:
+                            moodEmoji = '😐';
+                            bgColor = 'bg-gray-100';
+                    }
+                    
+                    moodIcon.textContent = moodEmoji;
+                    moodIcon.classList.add(bgColor);
+                    dayElement.appendChild(moodIcon);
+                }
+                
+                // 點擊日期切換到該日
+                dayElement.addEventListener('click', () => {
+                    // 移除所有日期的 selected 類別
+                    document.querySelectorAll('.calendar-day').forEach(day => {
+                        day.classList.remove('selected');
+                    });
+                    
+                    // 為點擊的日期添加 selected 類別
+                    dayElement.classList.add('selected');
+                    
+                    // 更新當前日期並刷新視圖
+                    currentDate = new Date(year, month, i);
+                    loadDailyData();
+                });
+                
+                calendarContainer.appendChild(dayElement);
+            }
+        }
+
+        // 加載每日數據
+        function loadDailyData() {
+            const dateStr = formatDate(currentDate);
+            
+            // 更新能量等級
+            const energyLevel = document.getElementById('energy-level');
+            const energyValue = document.getElementById('energy-value');
+            
+            if (data.dailyState[dateStr] && data.dailyState[dateStr].energy) {
+                energyLevel.value = data.dailyState[dateStr].energy;
+                energyValue.textContent = data.dailyState[dateStr].energy;
+            } else {
+                energyLevel.value = 5;
+                energyValue.textContent = 5;
+            }
+            
+            // 更新心情按鈕
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'border-2', 'border-indigo-500');
+            });
+            
+            if (data.dailyState[dateStr] && data.dailyState[dateStr].mood) {
+                const selectedMoodBtn = document.querySelector(`.mood-btn[data-mood="${data.dailyState[dateStr].mood}"]`);
+                if (selectedMoodBtn) {
+                    selectedMoodBtn.classList.add('bg-gray-100', 'dark:bg-gray-700', 'border-2', 'border-indigo-500');
+                }
+            }
+            
+            // 加載每日任務
+            loadDailyTasks();
+            
+            // 加載反思數據
+            loadReflectionData();
+        }
+
+        // 加載每日任務
+        function loadDailyTasks() {
+            const dateStr = formatDate(currentDate);
+            const tasksContainer = document.getElementById('daily-tasks-container');
+            const emptyMessage = document.getElementById('empty-task-message');
+            
+            // 清空容器
+            while (tasksContainer.firstChild !== emptyMessage) {
+                tasksContainer.removeChild(tasksContainer.firstChild);
+            }
+            
+            // 收集所有任務的集合
+            const allTaskTitles = new Set();
+            
+            // 遍歷所有日期的任務，收集所有唯一的任務標題
+            for (const date in data.tasks) {
+                if (data.tasks.hasOwnProperty(date) && Array.isArray(data.tasks[date])) {
+                    data.tasks[date].forEach(task => {
+                        allTaskTitles.add(task.title);
+                    });
+                }
+            }
+            
+            // 轉換為數組形式
+            const tasksToDisplay = [];
+            
+            // 對於每個唯一的任務標題，檢查當前日期是否有該任務
+            allTaskTitles.forEach(title => {
+                // 檢查當前日期是否有這個任務
+                let taskInCurrentDate = null;
+                let taskIndex = -1;
+                
+                if (data.tasks[dateStr] && Array.isArray(data.tasks[dateStr])) {
+                    const foundTaskIndex = data.tasks[dateStr].findIndex(t => t.title === title);
+                    if (foundTaskIndex !== -1) {
+                        taskInCurrentDate = data.tasks[dateStr][foundTaskIndex];
+                        taskIndex = foundTaskIndex;
+                    }
+                }
+                
+                // 如果當前日期沒有該任務，尋找最近添加的同名任務作為模板
+                if (!taskInCurrentDate) {
+                    let templateTask = null;
+                    let latestDate = null;
+                    
+                    for (const date in data.tasks) {
+                        if (data.tasks.hasOwnProperty(date) && Array.isArray(data.tasks[date])) {
+                            const foundTask = data.tasks[date].find(t => t.title === title);
+                            if (foundTask) {
+                                if (!latestDate || new Date(date) > new Date(latestDate)) {
+                                    latestDate = date;
+                                    templateTask = foundTask;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (templateTask) {
+                        // 使用模板任務，但標記為未完成
+                        tasksToDisplay.push({
+                            task: {
+                                ...templateTask,
+                                completed: false
+                            },
+                            isInCurrentDate: false,
+                            title: templateTask.title
+                        });
+                    }
+                } else {
+                    // 使用當前日期的任務
+                    tasksToDisplay.push({
+                        task: taskInCurrentDate,
+                        index: taskIndex,
+                        dateStr: dateStr,
+                        isInCurrentDate: true
+                    });
+                }
+            });
+            
+            // 檢查是否有任務
+            if (tasksToDisplay.length > 0) {
+                emptyMessage.classList.add('hidden');
+                
+                // 根據優先級排序任務
+                const priorityOrder = { high: 0, medium: 1, low: 2 };
+                tasksToDisplay.sort((a, b) => {
+                    const priorityA = a.task.priority || 'low';
+                    const priorityB = b.task.priority || 'low';
+                    return priorityOrder[priorityA] - priorityOrder[priorityB];
+                });
+                
+                // 添加所有任務卡片
+                tasksToDisplay.forEach(taskData => {
+                    const taskCard = createTaskCard(
+                        taskData.task, 
+                        taskData.index, 
+                        taskData.dateStr, 
+                        taskData.isInCurrentDate
+                    );
+                    tasksContainer.insertBefore(taskCard, emptyMessage);
+                });
+            } else {
+                emptyMessage.classList.remove('hidden');
+            }
+        }
+
+        // 創建任務卡片
+        function createTaskCard(task, index, dateStr, isInCurrentDate) {
+            const taskCard = document.createElement('div');
+            // 根據優先級設置不同的邊框顏色
+            const priorityColors = {
+                high: 'border-red-500 dark:border-red-400',
+                medium: 'border-blue-500 dark:border-blue-400',
+                low: 'border-yellow-500 dark:border-yellow-400'
+            };
+            
+            taskCard.className = `task-card bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border-2 ${priorityColors[task.priority] || 'border-gray-200 dark:border-gray-600'}`;
+            taskCard.dataset.index = index;
+            taskCard.dataset.dateStr = dateStr;
+            taskCard.dataset.priority = task.priority || 'low';
+            
+            // 任務標題和勾選框
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'flex items-start gap-2';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'mt-1 h-5 w-5 text-indigo-600 rounded';
+            checkbox.checked = task.completed || false;
+            
+            // 為所有任務添加打卡功能
+            checkbox.addEventListener('change', () => {
+                const currentDateStr = formatDate(currentDate);
+                
+                if (isInCurrentDate) {
+                    // 當前日期的任務直接更新
+                    data.tasks[dateStr][index].completed = checkbox.checked;
+                } else {
+                    // 非當前日期的任務，需要先檢查當前日期是否已有該任務
+                    if (!data.tasks[currentDateStr]) {
+                        data.tasks[currentDateStr] = [];
+                    }
+                    
+                    const existingTaskIndex = data.tasks[currentDateStr].findIndex(t => t.title === task.title);
+                    
+                    if (existingTaskIndex === -1) {
+                        // 如果當前日期沒有該任務，添加到當前日期
+                        data.tasks[currentDateStr].push({
+                            ...task,
+                            completed: checkbox.checked
+                        });
+                    } else {
+                        // 如果當前日期已有該任務，更新其完成狀態
+                        data.tasks[currentDateStr][existingTaskIndex].completed = checkbox.checked;
+                    }
+                }
+                
+                saveData();
+                
+                // 視覺反饋
+                taskCard.style.opacity = checkbox.checked ? '0.7' : '1';
+                taskTitle.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
+                
+                // 更新日曆和統計
+                updateCalendar();
+                updateStatsSummary();
+                
+                // 顯示完成訊息
+                if (checkbox.checked) {
+                    const randomMessage = getRandomItem(completionMessages.dailyTask);
+                    showMessageBox(randomMessage, 'dailyTask');
+                }
+                
+                // 如果是非當前日期任務被打卡，刷新任務列表以更新UI
+                if (!isInCurrentDate) {
+                    loadDailyTasks();
+                }
+            });
+            
+            const taskContent = document.createElement('div');
+            taskContent.className = 'flex-1';
+            
+            const titleCategoryDiv = document.createElement('div');
+            titleCategoryDiv.className = 'flex flex-wrap items-center gap-2 mb-1';
+            
+            const taskTitle = document.createElement('h3');
+            taskTitle.className = 'font-medium';
+            taskTitle.textContent = task.title;
+            taskTitle.style.textDecoration = task.completed ? 'line-through' : 'none';
+            
+            // 添加任務日期標記
+            const dateDisplay = document.createElement('span');
+            dateDisplay.className = 'text-xs text-gray-500 dark:text-gray-400 ml-1';
+            
+            // 將日期字符串轉換為可讀格式
+            if (dateStr) {
+                const taskDate = parseDate(dateStr);
+                const formattedDate = `${taskDate.getFullYear()}/${taskDate.getMonth() + 1}/${taskDate.getDate()}`;
+                dateDisplay.textContent = formattedDate;
+            } else {
+                dateDisplay.textContent = '未知日期';
+            }
+            
+            // 如果不是當前日期的任務，添加"歷史任務"標記
+            if (!isInCurrentDate) {
+                const historyTag = document.createElement('span');
+                historyTag.className = 'text-xs px-2 py-0.5 rounded-full ml-1 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+                historyTag.textContent = '歷史任務';
+                titleCategoryDiv.appendChild(historyTag);
+            }
+            
+            // 添加優先級標記
+            const priorityDisplay = document.createElement('span');
+            priorityDisplay.className = `text-xs px-2 py-0.5 rounded-full ml-1 ${
+                task.priority === 'high' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' :
+                task.priority === 'medium' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
+                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
+            }`;
+            
+            const priorityNames = {
+                high: '優先度 高',
+                medium: '優先度 中',
+                low: '優先度 低'
+            };  
+            
+            priorityDisplay.textContent = priorityNames[task.priority] || '優先度 低';
+            
+            const categorySpan = document.createElement('span');
+            categorySpan.className = `text-xs category-tag category-${task.category || 'other'}`;
+            
+            const categoryNames = {
+                work: '工作',
+                study: '學習',
+                health: '健康',
+                personal: '個人',
+                other: '其他'
+            };
+            
+            categorySpan.textContent = categoryNames[task.category] || '其他';
+            
+            titleCategoryDiv.appendChild(taskTitle);
+            titleCategoryDiv.appendChild(dateDisplay);
+            titleCategoryDiv.appendChild(priorityDisplay);
+            titleCategoryDiv.appendChild(categorySpan);
+            taskContent.appendChild(titleCategoryDiv);
+            
+            // 任務備註（如果有）
+            if (task.notes) {
+                const notesDiv = document.createElement('div');
+                notesDiv.className = 'text-sm text-gray-600 dark:text-gray-400 mb-2';
+                notesDiv.textContent = task.notes;
+                taskContent.appendChild(notesDiv);
+            }
+            
+            // 任務連結（如果有）
+            if (task.link) {
+                const linkDiv = document.createElement('div');
+                linkDiv.className = 'mt-1';
+                
+                const link = document.createElement('a');
+                link.href = task.link;
+                link.target = '_blank';
+                link.className = 'px-3 py-1 bg-violet-500 hover:bg-purple-500 text-white rounded-lg text-sm';
+                //link.innerHTML = `<i class="fas fa-link mr-1"></i>${task.link.substring(0, 30)}${task.link.length > 30 ? '...' : ''}`;
+                link.innerHTML = `<i class="fas fa-link mr-1"></i>馬上開始！`;
+                linkDiv.appendChild(link);
+                taskContent.appendChild(linkDiv);
+            }
+            
+            headerDiv.appendChild(checkbox);
+            headerDiv.appendChild(taskContent);
+            
+            // 操作按鈕
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'flex items-center gap-1 mt-2 justify-end';
+            
+            const editButton = document.createElement('button');
+            editButton.className = 'text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-500';
+            editButton.innerHTML = '<i class="fas fa-edit mr-1"></i>編輯';
+            editButton.addEventListener('click', () => {
+                // 載入任務資料到表單
+                document.getElementById('task-title').value = task.title;
+                document.getElementById('task-category').value = task.category || 'other';
+                document.getElementById('task-notes').value = task.notes || '';
+                document.getElementById('task-link').value = task.link || '';
+                document.getElementById('task-priority').value = task.priority || 'low';
+                
+                // 打開模態框
+                document.getElementById('add-daily-task-modal').classList.remove('hidden');
+                
+                // 設置標誌，表示正在編輯而不是新增
+                document.getElementById('daily-task-form').dataset.editing = 'true';
+                
+                if (isInCurrentDate && index !== undefined) {
+                    document.getElementById('daily-task-form').dataset.editIndex = index;
+                    document.getElementById('daily-task-form').dataset.editDate = dateStr;
+                } else {
+                    // 如果不是當前日期的任務，則創建一個新任務
+                    document.getElementById('daily-task-form').dataset.editing = 'false';
+                }
+            });
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'text-xs px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800';
+            deleteButton.innerHTML = '<i class="fas fa-trash mr-1"></i>刪除';
+            
+            // 如果是當前日期的任務，則刪除該日的任務；否則，刪除所有同名任務
+            deleteButton.addEventListener('click', () => {
+                if (isInCurrentDate) {
+                    if (confirm('確定要從當前日期刪除這個任務嗎？')) {
+                        // 從數據中刪除任務
+                        data.tasks[dateStr].splice(index, 1);
+                        
+                        // 如果該日沒有任務了，刪除該日的條目
+                        if (data.tasks[dateStr].length === 0) {
+                            delete data.tasks[dateStr];
+                        }
+                        
+                        // 保存並重新加載
+                        saveData();
+                        loadDailyTasks();
+                        updateCalendar();
+                        updateStatsSummary();
+                    }
+                } else {
+                    if (confirm('確定要從所有日期中刪除這個任務嗎？此操作無法撤銷。')) {
+                        // 從所有日期中刪除同名任務
+                        const taskTitle = task.title;
+                        
+                        for (const date in data.tasks) {
+                            if (data.tasks.hasOwnProperty(date) && Array.isArray(data.tasks[date])) {
+                                const taskIndex = data.tasks[date].findIndex(t => t.title === taskTitle);
+                                if (taskIndex !== -1) {
+                                    data.tasks[date].splice(taskIndex, 1);
+                                    
+                                    // 如果該日沒有任務了，刪除該日的條目
+                                    if (data.tasks[date].length === 0) {
+                                        delete data.tasks[date];
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 保存並重新加載
+                        saveData();
+                        loadDailyTasks();
+                        updateCalendar();
+                        updateStatsSummary();
+                    }
+                }
+            });
+            
+            actionsDiv.appendChild(editButton);
+            actionsDiv.appendChild(deleteButton);
+            
+            taskCard.appendChild(headerDiv);
+            taskCard.appendChild(actionsDiv);
+            
+            // 設置初始透明度
+            taskCard.style.opacity = task.completed ? '0.7' : '1';
+            
+            return taskCard;
+        }
+
+        // 加載反思數據
+        function loadReflectionData() {
+            const dateStr = formatDate(currentDate);
+            
+            // 重置選中的情緒
+            document.querySelectorAll('.reflection-mood-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'border-2', 'border-indigo-500');
+            });
+            
+            // 清空情緒強度容器
+            const moodsContainer = document.getElementById('selected-moods-container');
+            moodsContainer.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">請從上方選擇一或多個情緒</div>';
+            
+            // 重置所有表單字段
+            document.getElementById('reflection-good').value = '';
+            document.getElementById('reflection-improve').value = '';
+            document.getElementById('reflection-lessons').value = '';
+            document.getElementById('reflection-tomorrow').value = '';
+            document.getElementById('emotion-triggers').value = '';
+            document.getElementById('negative-thoughts').value = '';
+            document.getElementById('trigger-situation').value = '';
+            document.getElementById('thought-rebuttal').value = '';
+            document.getElementById('balanced-thought').value = '';
+            
+            // 如果有反思數據，載入
+            if (data.reflections[dateStr]) {
+                const reflection = data.reflections[dateStr];
+                
+                // 載入文字字段
+                if (reflection.good) document.getElementById('reflection-good').value = reflection.good;
+                if (reflection.improve) document.getElementById('reflection-improve').value = reflection.improve;
+                if (reflection.lessons) document.getElementById('reflection-lessons').value = reflection.lessons;
+                if (reflection.tomorrow) document.getElementById('reflection-tomorrow').value = reflection.tomorrow;
+                if (reflection.emotionTriggers) document.getElementById('emotion-triggers').value = reflection.emotionTriggers;
+                if (reflection.negativeThoughts) document.getElementById('negative-thoughts').value = reflection.negativeThoughts;
+                if (reflection.triggerSituation) document.getElementById('trigger-situation').value = reflection.triggerSituation;
+                if (reflection.thoughtRebuttal) document.getElementById('thought-rebuttal').value = reflection.thoughtRebuttal;
+                if (reflection.balancedThought) document.getElementById('balanced-thought').value = reflection.balancedThought;
+                
+                // 載入情緒
+                if (reflection.moods && reflection.moods.length > 0) {
+                    // 清空容器
+                    moodsContainer.innerHTML = '';
+                    
+                    // 標記選擇的情緒按鈕
+                    reflection.moods.forEach(mood => {
+                        const moodBtn = document.querySelector(`.reflection-mood-btn[data-mood="${mood.name}"]`);
+                        if (moodBtn) {
+                            moodBtn.classList.add('bg-gray-100', 'dark:bg-gray-700', 'border-2', 'border-indigo-500');
+                        }
+                        
+                        // 添加情緒強度滑塊
+                        const moodItem = document.createElement('div');
+                        moodItem.className = 'flex items-center gap-2';
+                        moodItem.innerHTML = `
+                            <span class="text-sm">${getMoodEmoji(mood.name)} ${getMoodName(mood.name)}</span>
+                            <input type="range" min="1" max="5" value="${mood.intensity}" class="flex-1 h-2" data-mood="${mood.name}">
+                            <span class="text-sm">${mood.intensity}</span>
+                        `;
+                        
+                        // 監聽滑塊變化
+                        const slider = moodItem.querySelector('input[type="range"]');
+                        const valueDisplay = moodItem.querySelector('span:last-child');
+                        slider.addEventListener('input', () => {
+                            valueDisplay.textContent = slider.value;
+                        });
+                        
+                        moodsContainer.appendChild(moodItem);
+                    });
+                }
+            }
+        }
+
+        // 獲取情緒名稱
+        function getMoodName(mood) {
+            const moodNames = {
+                happy: '開心',
+                calm: '平靜',
+                tired: '疲憊',
+                anxious: '焦慮',
+                motivated: '有動力',
+                sad: '悲傷',
+                angry: '憤怒',
+                excited: '興奮',
+                confused: '困惑',
+                grateful: '感恩'
+            };
+            
+            return moodNames[mood] || mood;
+        }
+
+        // 獲取情緒 Emoji
+        function getMoodEmoji(mood) {
+            const moodEmojis = {
+                happy: '😊',
+                calm: '😌',
+                tired: '😩',
+                anxious: '😟',
+                motivated: '💪',
+                sad: '😢',
+                angry: '😠',
+                excited: '🤩',
+                confused: '😕',
+                grateful: '🙏'
+            };
+            
+            return moodEmojis[mood] || '😐';
+        }
+
+        // 加載目標列表
+        function loadGoals() {
+            const goalsContainer = document.getElementById('goals-container');
+            const emptyMessage = document.getElementById('empty-goal-message');
+            
+            // 清空容器
+            while (goalsContainer.firstChild !== emptyMessage) {
+                goalsContainer.removeChild(goalsContainer.firstChild);
+            }
+            
+            // 禁用子任務和目標詳情按鈕
+            document.getElementById('add-subtask').disabled = true;
+            document.getElementById('edit-goal').disabled = true;
+            document.getElementById('delete-goal').disabled = true;
+            
+            // 顯示目標列表
+            if (data.goals.length > 0) {
+                emptyMessage.classList.add('hidden');
+                
+                // 添加目標卡片
+                data.goals.forEach((goal, index) => {
+                    const goalCard = createGoalCard(goal, index);
+                    goalsContainer.insertBefore(goalCard, emptyMessage);
+                });
+            } else {
+                emptyMessage.classList.remove('hidden');
+                
+                // 重置當前目標 ID
+                currentGoalId = null;
+                
+                // 隱藏目標詳情，顯示空消息
+                document.getElementById('goal-details').classList.add('hidden');
+                document.getElementById('empty-goal-details').classList.remove('hidden');
+                document.getElementById('empty-subtask-message').classList.remove('hidden');
+            }
+        }
+
+        // 創建目標卡片
+        function createGoalCard(goal, index) {
+            const goalCard = document.createElement('div');
+            goalCard.className = `task-card p-3 rounded-lg ${currentGoalId === goal.id ? 'bg-indigo-50 dark:bg-indigo-900 border-2 border-indigo-500' : 'bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600'}`;
+            goalCard.dataset.id = goal.id;
+            
+            // 目標標題和類別
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'mb-2';
+            
+            const titleCategoryDiv = document.createElement('div');
+            titleCategoryDiv.className = 'flex flex-wrap items-center gap-2 mb-1';
+            
+            const goalTitle = document.createElement('h3');
+            goalTitle.className = 'font-medium';
+            goalTitle.textContent = goal.title;
+            
+            const categorySpan = document.createElement('span');
+            categorySpan.className = `text-xs category-tag category-${goal.category || 'other'}`;
+            
+            const categoryNames = {
+                work: '工作',
+                study: '學習',
+                health: '健康',
+                personal: '個人',
+                other: '其他'
+            };
+            
+            categorySpan.textContent = categoryNames[goal.category] || '其他';
+            
+            titleCategoryDiv.appendChild(goalTitle);
+            titleCategoryDiv.appendChild(categorySpan);
+            headerDiv.appendChild(titleCategoryDiv);
+            
+            // 截止日期 (如果有)
+            if (goal.deadline) {
+                const deadlineDiv = document.createElement('div');
+                deadlineDiv.className = 'text-xs text-gray-500 dark:text-gray-400';
+                deadlineDiv.innerHTML = `<i class="far fa-calendar-alt mr-1"></i>${goal.deadline}`;
+                headerDiv.appendChild(deadlineDiv);
+            }
+            
+            // 進度條
+            const progressDiv = document.createElement('div');
+            progressDiv.className = 'mt-2';
+            
+            const progressLabel = document.createElement('div');
+            progressLabel.className = 'flex justify-between text-xs mb-1';
+            
+            const progressText = document.createElement('span');
+            progressText.textContent = '進度';
+            
+            const progressValue = document.createElement('span');
+            progressValue.textContent = `${goal.progress || 0}%`;
+            
+            progressLabel.appendChild(progressText);
+            progressLabel.appendChild(progressValue);
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            
+            const progressFill = document.createElement('div');
+            progressFill.className = 'progress-fill';
+            progressFill.style.width = `${goal.progress || 0}%`;
+            
+            progressBar.appendChild(progressFill);
+            
+            progressDiv.appendChild(progressLabel);
+            progressDiv.appendChild(progressBar);
+            
+            // 點擊目標卡片選中目標
+            goalCard.addEventListener('click', () => {
+                // 更新選中狀態
+                document.querySelectorAll('#goals-container .task-card').forEach(card => {
+                    card.classList.remove('bg-indigo-50', 'dark:bg-indigo-900', 'border-2', 'border-indigo-500');
+                    card.classList.add('bg-gray-50', 'dark:bg-gray-700', 'border', 'border-gray-200', 'dark:border-gray-600');
+                });
+                
+                goalCard.classList.remove('bg-gray-50', 'dark:bg-gray-700', 'border', 'border-gray-200', 'dark:border-gray-600');
+                goalCard.classList.add('bg-indigo-50', 'dark:bg-indigo-900', 'border-2', 'border-indigo-500');
+                
+                // 設置當前目標 ID
+                currentGoalId = goal.id;
+                
+                // 啟用按鈕
+                document.getElementById('add-subtask').disabled = false;
+                document.getElementById('edit-goal').disabled = false;
+                document.getElementById('delete-goal').disabled = false;
+                
+                // 顯示目標詳情
+                showGoalDetails(goal);
+                
+                // 加載子任務
+                loadSubtasks();
+            });
+            
+            goalCard.appendChild(headerDiv);
+            goalCard.appendChild(progressDiv);
+            
+            return goalCard;
+        }
+
+        // 顯示目標詳情
+        function showGoalDetails(goal) {
+            // 隱藏空消息，顯示詳情
+            document.getElementById('empty-goal-details').classList.add('hidden');
+            document.getElementById('goal-details').classList.remove('hidden');
+            
+            // 填充詳情
+            document.getElementById('goal-detail-title').textContent = goal.title;
+            
+            // 設置類別標籤
+            const categoryElement = document.getElementById('goal-detail-category');
+            categoryElement.className = `category-tag category-${goal.category || 'other'}`;
+            
+            const categoryNames = {
+                work: '工作',
+                study: '學習',
+                health: '健康',
+                personal: '個人',
+                other: '其他'
+            };
+            
+            categoryElement.textContent = categoryNames[goal.category] || '其他';
+            
+            // 設置截止日期
+            if (goal.deadline) {
+                document.getElementById('goal-detail-deadline').innerHTML = `<i class="far fa-calendar-alt mr-1"></i>${goal.deadline}`;
+                document.getElementById('goal-detail-deadline').classList.remove('hidden');
+            } else {
+                document.getElementById('goal-detail-deadline').classList.add('hidden');
+            }
+            
+            // 設置進度
+            document.getElementById('goal-detail-progress-text').textContent = `${goal.progress || 0}%`;
+            document.getElementById('goal-detail-progress').style.width = `${goal.progress || 0}%`;
+            
+            // 填充其他字段
+            document.getElementById('goal-detail-why').textContent = goal.why || '未設定';
+            document.getElementById('goal-detail-specific').textContent = goal.specific || '未設定';
+            document.getElementById('goal-detail-measurable').textContent = goal.measurable || '未設定';
+            document.getElementById('goal-detail-achievable').textContent = goal.achievable || '未設定';
+            document.getElementById('goal-detail-relevant').textContent = goal.relevant || '未設定';
+            document.getElementById('goal-detail-timebound').textContent = goal.timebound || '未設定';
+        }
+
+        // 加載子任務
+        function loadSubtasks() {
+            if (!currentGoalId) return;
+            
+            const subtasksContainer = document.getElementById('subtasks-container');
+            const emptyMessage = document.getElementById('empty-subtask-message');
+            
+            // 清空容器
+            while (subtasksContainer.firstChild !== emptyMessage) {
+                subtasksContainer.removeChild(subtasksContainer.firstChild);
+            }
+            
+            // 檢查是否有子任務
+            if (data.subtasks[currentGoalId] && data.subtasks[currentGoalId].length > 0) {
+                emptyMessage.classList.add('hidden');
+                
+                // 添加子任務卡片
+                data.subtasks[currentGoalId].forEach((subtask, index) => {
+                    const subtaskCard = createSubtaskCard(subtask, index);
+                    subtasksContainer.insertBefore(subtaskCard, emptyMessage);
+                });
+            } else {
+                emptyMessage.classList.remove('hidden');
+            }
+        }
+
+        // 創建子任務卡片
+        function createSubtaskCard(subtask, index) {
+            const subtaskCard = document.createElement('div');
+            subtaskCard.className = 'task-card bg-gray-50 dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600';
+            subtaskCard.dataset.index = index;
+            
+            // 子任務標題和勾選框
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'flex items-start gap-2';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'mt-1 h-5 w-5 text-indigo-600 rounded';
+            checkbox.checked = subtask.completed || false;
+            checkbox.addEventListener('change', () => {
+                // 更新數據
+                data.subtasks[currentGoalId][index].completed = checkbox.checked;
+                
+                // 更新目標進度
+                updateGoalProgress();
+                
+                // 保存數據
+                saveData();
+                
+                // 視覺反饋
+                subtaskCard.style.opacity = checkbox.checked ? '0.7' : '1';
+                subtaskTitle.style.textDecoration = checkbox.checked ? 'line-through' : 'none';
+                
+                // 更新目標列表和詳情
+                loadGoals();
+                
+                // 如果目標完成了，顯示訊息
+                const goal = data.goals.find(g => g.id === currentGoalId);
+                if (checkbox.checked) {
+                    // 顯示子任務完成訊息
+                    const randomMessage = getRandomItem(completionMessages.subtask);
+                    showMessageBox(randomMessage, 'subtask');
+                    
+                    // 如果目標剛好完成，顯示目標完成訊息
+                    if (goal && goal.progress >= 100) {
+                        setTimeout(() => {
+                            const randomGoalMessage = getRandomItem(completionMessages.goalComplete);
+                            showMessageBox(randomGoalMessage, 'goalComplete');
+                        }, 500);
+                    }
+                }
+            });
+            
+            const subtaskContent = document.createElement('div');
+            subtaskContent.className = 'flex-1';
+            
+            const subtaskTitle = document.createElement('h3');
+            subtaskTitle.className = 'font-medium mb-1';
+            subtaskTitle.textContent = subtask.title;
+            subtaskTitle.style.textDecoration = subtask.completed ? 'line-through' : 'none';
+            
+            subtaskContent.appendChild(subtaskTitle);
+            
+            // 子任務描述（如果有）
+            if (subtask.description) {
+                const descriptionDiv = document.createElement('div');
+                descriptionDiv.className = 'text-sm text-gray-600 dark:text-gray-400 mb-2';
+                descriptionDiv.textContent = subtask.description;
+                subtaskContent.appendChild(descriptionDiv);
+            }
+            
+            // 子任務連結（如果有）
+            if (subtask.link) {
+                const linkDiv = document.createElement('div');
+                linkDiv.className = 'mt-1';
+                
+                const link = document.createElement('a');
+                link.href = subtask.link;
+                link.target = '_blank';
+                link.className = 'text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center';
+                link.innerHTML = `<i class="fas fa-link mr-1"></i>${subtask.link.substring(0, 30)}${subtask.link.length > 30 ? '...' : ''}`;
+                
+                linkDiv.appendChild(link);
+                subtaskContent.appendChild(linkDiv);
+            }
+            
+            // 子任務截止日期（如果有）
+            if (subtask.deadline) {
+                const deadlineDiv = document.createElement('div');
+                deadlineDiv.className = 'text-xs text-gray-500 dark:text-gray-400 mt-1';
+                deadlineDiv.innerHTML = `<i class="far fa-calendar-alt mr-1"></i>${subtask.deadline}`;
+                subtaskContent.appendChild(deadlineDiv);
+            }
+            
+            headerDiv.appendChild(checkbox);
+            headerDiv.appendChild(subtaskContent);
+            
+            // 操作按鈕
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'flex items-center gap-1 mt-2 justify-end';
+            
+            const editButton = document.createElement('button');
+            editButton.className = 'text-xs px-2 py-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-500';
+            editButton.innerHTML = '<i class="fas fa-edit mr-1"></i>編輯';
+            editButton.addEventListener('click', () => {
+                // 載入子任務資料到表單
+                document.getElementById('subtask-title').value = subtask.title;
+                document.getElementById('subtask-description').value = subtask.description || '';
+                document.getElementById('subtask-link').value = subtask.link || '';
+                document.getElementById('subtask-deadline').value = subtask.deadline || '';
+                
+                // 打開模態框
+                document.getElementById('add-subtask-modal').classList.remove('hidden');
+                
+                // 設置標誌，表示正在編輯而不是新增
+                document.getElementById('subtask-form').dataset.editing = 'true';
+                document.getElementById('subtask-form').dataset.editIndex = index;
+            });
+            
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'text-xs px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800';
+            deleteButton.innerHTML = '<i class="fas fa-trash mr-1"></i>刪除';
+            deleteButton.addEventListener('click', () => {
+                if (confirm('確定要刪除這個子任務嗎？')) {
+                    // 從數據中刪除子任務
+                    data.subtasks[currentGoalId].splice(index, 1);
+                    
+                    // 如果該目標沒有子任務了，刪除該目標的子任務條目
+                    if (data.subtasks[currentGoalId].length === 0) {
+                        delete data.subtasks[currentGoalId];
+                    }
+                    
+                    // 更新目標進度
+                    updateGoalProgress();
+                    
+                    // 保存並重新加載
+                    saveData();
+                    loadSubtasks();
+                    loadGoals();
+                }
+            });
+            
+            actionsDiv.appendChild(editButton);
+            actionsDiv.appendChild(deleteButton);
+            
+            subtaskCard.appendChild(headerDiv);
+            subtaskCard.appendChild(actionsDiv);
+            
+            // 設置初始透明度
+            subtaskCard.style.opacity = subtask.completed ? '0.7' : '1';
+            
+            return subtaskCard;
+        }
+
+        // 更新目標進度
+        function updateGoalProgress() {
+            if (!currentGoalId) return;
+            
+            // 獲取目標的子任務
+            const subtasks = data.subtasks[currentGoalId] || [];
+            
+            // 計算進度
+            let progress = 0;
+            if (subtasks.length > 0) {
+                const completedCount = subtasks.filter(subtask => subtask.completed).length;
+                progress = Math.round((completedCount / subtasks.length) * 100);
+            }
+            
+            // 更新目標進度
+            const goalIndex = data.goals.findIndex(goal => goal.id === currentGoalId);
+            if (goalIndex !== -1) {
+                data.goals[goalIndex].progress = progress;
+            }
+        }
+
+        // 生成隨機 GIF 和激勵語錄
+        function generateDailyInspiration() {
+            // 選擇隨機激勵語錄
+            const randomQuote = getRandomItem(motivationalQuotes);
+            document.getElementById('motivation-quote').textContent = randomQuote;
+            
+            // 載入隨機圖片
+            loadRandomImage();
+            
+        }
+
+        // 當前顯示的圖片編號
+        let currentImageNumber = 0;
+
+        // 載入隨機圖片
+        function loadRandomImage() {
+            // 圖片總數量
+            const totalImages = 28;
+            
+            // 選擇一個不同於當前的隨機圖片編號
+            let randomNumber;
+            do {
+                randomNumber = Math.floor(Math.random() * totalImages) + 1;
+            } while (randomNumber === currentImageNumber && totalImages > 1);
+            
+            // 更新當前圖片編號
+            currentImageNumber = randomNumber;
+            
+            // 設置圖片路徑
+            const imagePath = `./img/${randomNumber}.gif`;
+            document.getElementById('gif-image').src = imagePath;
+        }
+
+        // 初始化圖表
+        function initializeCharts() {
+            // 初始化任務完成率圖表
+            const taskCtx = document.getElementById('task-completion-chart').getContext('2d');
+            window.taskCompletionChart = new Chart(taskCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '任務完成率',
+                        data: [],
+                        backgroundColor: 'rgba(93, 92, 222, 0.6)',
+                        borderColor: 'rgba(93, 92, 222, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: value => `${value}%`
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `完成率: ${context.raw}%`
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 初始化能量等級趨勢圖表
+            const energyCtx = document.getElementById('energy-level-chart').getContext('2d');
+            window.energyLevelChart = new Chart(energyCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '能量等級',
+                        data: [],
+                        borderColor: 'rgba(93, 92, 222, 1)',
+                        backgroundColor: 'rgba(93, 92, 222, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 初始化目標進度圖表
+            const goalCtx = document.getElementById('goal-progress-chart').getContext('2d');
+            window.goalProgressChart = new Chart(goalCtx, {
+                type: 'radar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '目標進度',
+                        data: [],
+                        backgroundColor: 'rgba(93, 92, 222, 0.2)',
+                        borderColor: 'rgba(93, 92, 222, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(93, 92, 222, 1)',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                callback: value => `${value}%`
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `進度: ${context.raw}%`
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 初始化情緒分佈圖表
+            const moodCtx = document.getElementById('mood-distribution-chart').getContext('2d');
+            window.moodDistributionChart = new Chart(moodCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(199, 199, 199, 0.7)',
+                            'rgba(83, 102, 255, 0.7)',
+                            'rgba(40, 159, 64, 0.7)',
+                            'rgba(210, 199, 199, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)',
+                            'rgba(199, 199, 199, 1)',
+                            'rgba(83, 102, 255, 1)',
+                            'rgba(40, 159, 64, 1)',
+                            'rgba(210, 199, 199, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ${context.raw}次`
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新進度可視化
+        function updateVisualization() {
+            // 獲取日期範圍
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - dateRangeForVisualization + 1);
+            
+            // 生成日期範圍內的所有日期
+            const dateRange = [];
+            const currentDate = new Date(startDate);
+            while (currentDate <= endDate) {
+                dateRange.push(formatDate(currentDate));
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // 更新任務完成率圖表
+            const taskCompletionData = dateRange.map(date => {
+                const tasks = data.tasks[date] || [];
+                if (tasks.length === 0) return 0;
+                
+                const completed = tasks.filter(task => task.completed).length;
+                return Math.round((completed / tasks.length) * 100);
+            });
+            
+            window.taskCompletionChart.data.labels = dateRange.map(date => date.substring(5)); // 只顯示月日
+            window.taskCompletionChart.data.datasets[0].data = taskCompletionData;
+            window.taskCompletionChart.update();
+            
+            // 更新能量等級趨勢圖表
+            const energyLevelData = dateRange.map(date => {
+                return data.dailyState[date]?.energy || null;
+            });
+            
+            window.energyLevelChart.data.labels = dateRange.map(date => date.substring(5));
+            window.energyLevelChart.data.datasets[0].data = energyLevelData;
+            window.energyLevelChart.update();
+            
+            // 更新目標進度圖表
+            const goalLabels = data.goals.map(goal => goal.title.substring(0, 10) + (goal.title.length > 10 ? '...' : ''));
+            const goalProgressData = data.goals.map(goal => goal.progress || 0);
+            
+            window.goalProgressChart.data.labels = goalLabels;
+            window.goalProgressChart.data.datasets[0].data = goalProgressData;
+            window.goalProgressChart.update();
+            
+            // 更新情緒分佈圖表
+            const moodCounts = {};
+            
+            dateRange.forEach(date => {
+                const mood = data.dailyState[date]?.mood;
+                if (mood) {
+                    moodCounts[mood] = (moodCounts[mood] || 0) + 1;
+                }
+            });
+            
+            const moodLabels = Object.keys(moodCounts).map(getMoodName);
+            const moodData = Object.values(moodCounts);
+            
+            window.moodDistributionChart.data.labels = moodLabels;
+            window.moodDistributionChart.data.datasets[0].data = moodData;
+            window.moodDistributionChart.update();
+            
+            // 更新洞察與建議
+            generateInsights(dateRange);
+        }
+
+        // 生成數據洞察
+        function generateInsights(dateRange) {
+            const insightsContainer = document.getElementById('insights-container');
+            
+            // 檢查是否有足夠的數據
+            if (dateRange.length < 3) {
+                insightsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">需要至少3天的數據才能生成洞察。</p>';
+                return;
+            }
+            
+            // 收集數據
+            let taskCompletionCount = 0;
+            let taskTotalCount = 0;
+            let energyLevelSum = 0;
+            let energyLevelCount = 0;
+            let moodCounts = {};
+            
+            dateRange.forEach(date => {
+                // 任務完成情況
+                const tasks = data.tasks[date] || [];
+                const completedTasks = tasks.filter(task => task.completed).length;
+                taskCompletionCount += completedTasks;
+                taskTotalCount += tasks.length;
+                
+                // 能量等級
+                if (data.dailyState[date] && data.dailyState[date].energy) {
+                    energyLevelSum += data.dailyState[date].energy;
+                    energyLevelCount++;
+                }
+                
+                // 心情統計
+                if (data.dailyState[date] && data.dailyState[date].mood) {
+                    const mood = data.dailyState[date].mood;
+                    moodCounts[mood] = (moodCounts[mood] || 0) + 1;
+                }
+            });
+            
+            // 計算平均值
+            const taskCompletionRate = taskTotalCount > 0 ? Math.round((taskCompletionCount / taskTotalCount) * 100) : 0;
+            const avgEnergyLevel = energyLevelCount > 0 ? (energyLevelSum / energyLevelCount).toFixed(1) : 0;
+            
+            // 找出最常見的心情
+            let mostCommonMood = '';
+            let maxCount = 0;
+            
+            Object.entries(moodCounts).forEach(([mood, count]) => {
+                if (count > maxCount) {
+                    mostCommonMood = mood;
+                    maxCount = count;
+                }
+            });
+            
+            // 生成洞察文字
+            let insightsHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="font-medium mb-2">數據摘要 (${dateRange.length}天)</h3>
+                        <ul class="list-disc pl-5 space-y-1 text-sm">
+                            <li>任務完成率: <span class="font-medium">${taskCompletionRate}%</span> (共完成 ${taskCompletionCount}/${taskTotalCount} 個任務)</li>
+                            <li>平均能量等級: <span class="font-medium">${avgEnergyLevel}</span>/10</li>
+                            <li>最常見的心情: <span class="font-medium">${getMoodEmoji(mostCommonMood)} ${getMoodName(mostCommonMood)}</span></li>
+                        </ul>
+                    </div>
+            `;
+            
+            // 生成建議
+            insightsHTML += `
+                <div>
+                    <h3 class="font-medium mb-2">洞察與建議</h3>
+                    <ul class="list-disc pl-5 space-y-1 text-sm">
+            `;
+            
+            // 根據任務完成率給予建議
+            if (taskCompletionRate < 30) {
+                insightsHTML += `<li>你的任務完成率較低。嘗試設定更小、更具體的任務，或減少每日任務數量，確保它們是真正重要且可行的。</li>`;
+            } else if (taskCompletionRate >= 30 && taskCompletionRate < 70) {
+                insightsHTML += `<li>你的任務完成率處於中等水平。考慮使用番茄工作法等技巧來提高專注力，優先處理最重要的任務。</li>`;
+            } else if (taskCompletionRate >= 70) {
+                insightsHTML += `<li>你的任務完成率很高！請確保你設定的任務具有足夠的挑戰性，避免陷入只完成簡單任務的舒適區。</li>`;
+            }
+            
+            // 根據能量等級給予建議
+            if (avgEnergyLevel < 4) {
+                insightsHTML += `<li>你的平均能量等級較低。請注意休息和自我照顧，確保良好的睡眠品質，考慮調整工作/休息比例。</li>`;
+            } else if (avgEnergyLevel >= 4 && avgEnergyLevel < 7) {
+                insightsHTML += `<li>你的能量等級處於中等水平。嘗試找出能量高峰時段，在那些時間安排重要任務，在能量低谷時安排輕鬆活動或休息。</li>`;
+            } else if (avgEnergyLevel >= 7) {
+                insightsHTML += `<li>你的能量等級很高！充分利用這一優勢，同時注意不要透支自己，保持這種狀態的可持續性。</li>`;
+            }
+            
+            // 根據心情給予建議
+            if (mostCommonMood === 'happy' || mostCommonMood === 'motivated' || mostCommonMood === 'excited' || mostCommonMood === 'grateful') {
+                insightsHTML += `<li>你的心情普遍積極正面！請記錄下是什麼因素促成了這種積極情緒，以便在未來重現。</li>`;
+            } else if (mostCommonMood === 'calm') {
+                insightsHTML += `<li>你的心情通常很平靜。這是一個良好的心理狀態，有助於穩定地進步。在壓力來臨時，回想如何保持這種平靜。</li>`;
+            } else if (mostCommonMood === 'tired' || mostCommonMood === 'anxious' || mostCommonMood === 'sad' || mostCommonMood === 'angry' || mostCommonMood === 'confused') {
+                insightsHTML += `<li>你的心情可能受到一些挑戰。考慮增加一些愉悅活動，尋求社交支持，或者適當調整你的目標期望。</li>`;
+            }
+            
+            // 任務節奏和模式
+            if (taskTotalCount > 0) {
+                // 檢查是否有任務集中的模式（例如週一設定很多任務）
+                const tasksByWeekday = Array(7).fill(0);
+                const completionRateByWeekday = Array(7).fill(0);
+                const tasksCountByWeekday = Array(7).fill(0);
+                
+                dateRange.forEach(date => {
+                    const dayObj = parseDate(date);
+                    const weekday = dayObj.getDay();
+                    const tasks = data.tasks[date] || [];
+                    const completed = tasks.filter(task => task.completed).length;
+                    
+                    tasksByWeekday[weekday] += tasks.length;
+                    tasksCountByWeekday[weekday]++;
+                    if (tasks.length > 0) {
+                        completionRateByWeekday[weekday] += (completed / tasks.length);
+                    }
+                });
+                
+                // 平均每個星期幾的任務數
+                const avgTasksByWeekday = tasksByWeekday.map((sum, index) => 
+                    tasksCountByWeekday[index] > 0 ? sum / tasksCountByWeekday[index] : 0
+                );
+                
+                // 平均每個星期幾的完成率
+                const avgCompletionRateByWeekday = completionRateByWeekday.map((sum, index) => 
+                    tasksCountByWeekday[index] > 0 ? sum / tasksCountByWeekday[index] : 0
+                );
+                
+                // 找出任務最多和最少的日子
+                const maxTasksWeekday = avgTasksByWeekday.indexOf(Math.max(...avgTasksByWeekday));
+                const minTasksWeekday = avgTasksByWeekday.filter(v => v > 0).length > 0 ? 
+                    avgTasksByWeekday.findIndex(v => v > 0 && v === Math.min(...avgTasksByWeekday.filter(v => v > 0))) : -1;
+                
+                // 找出完成率最高和最低的日子
+                const completionRatesWithTasks = avgCompletionRateByWeekday.map((rate, index) => 
+                    tasksCountByWeekday[index] > 0 ? rate : -1
+                );
+                const maxCompletionWeekday = completionRatesWithTasks.indexOf(Math.max(...completionRatesWithTasks));
+                const minCompletionWeekday = completionRatesWithTasks.filter(v => v >= 0).length > 0 ? 
+                    completionRatesWithTasks.findIndex(v => v >= 0 && v === Math.min(...completionRatesWithTasks.filter(v => v >= 0))) : -1;
+                
+                const weekdayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                
+                if (maxTasksWeekday !== -1) {
+                    insightsHTML += `<li>你通常在<strong>${weekdayNames[maxTasksWeekday]}</strong>設定最多任務。考慮合理分配任務，避免工作過載。</li>`;
+                }
+                
+                if (maxCompletionWeekday !== -1 && avgCompletionRateByWeekday[maxCompletionWeekday] > 0.7) {
+                    insightsHTML += `<li>你在<strong>${weekdayNames[maxCompletionWeekday]}</strong>的任務完成率最高 (${Math.round(avgCompletionRateByWeekday[maxCompletionWeekday] * 100)}%)。分析這一天的情況，找出可以複製的成功因素。</li>`;
+                }
+                
+                if (minCompletionWeekday !== -1 && avgCompletionRateByWeekday[minCompletionWeekday] < 0.5 && tasksCountByWeekday[minCompletionWeekday] >= 2) {
+                    insightsHTML += `<li>你在<strong>${weekdayNames[minCompletionWeekday]}</strong>的任務完成率最低 (${Math.round(avgCompletionRateByWeekday[minCompletionWeekday] * 100)}%)。這天可能需要特別策略或減少任務量。</li>`;
+                }
+            }
+            
+            // 目標進度分析
+            if (data.goals.length > 0) {
+                // 找出進度最高和最低的目標
+                const maxProgressGoal = [...data.goals].sort((a, b) => (b.progress || 0) - (a.progress || 0))[0];
+                const minProgressGoal = [...data.goals].filter(g => g.id in (data.subtasks || {})).sort((a, b) => (a.progress || 0) - (b.progress || 0))[0];
+                
+                if (maxProgressGoal && maxProgressGoal.progress > 50) {
+                    insightsHTML += `<li>你在「${maxProgressGoal.title}」目標上進展順利 (${maxProgressGoal.progress}%)，繼續保持！</li>`;
+                }
+                
+                if (minProgressGoal && minProgressGoal.progress < 30 && data.subtasks[minProgressGoal.id]?.length > 0) {
+                    insightsHTML += `<li>「${minProgressGoal.title}」目標的進度較慢 (${minProgressGoal.progress}%)。考慮重新評估這個目標的優先級或將子任務分解得更小。</li>`;
+                }
+            }
+            
+            insightsHTML += `
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-medium mb-2">下一步行動建議</h3>
+                    <ul class="list-disc pl-5 space-y-1 text-sm">
+            `;
+            
+            // 根據整體情況提供行動建議
+            insightsHTML += `<li>每天花5分鐘回顧目標，確保日常任務與長期目標保持一致。</li>`;
+            
+            if (taskCompletionRate < 50) {
+                insightsHTML += `<li>嘗試"2分鐘原則"：如果一個任務不超過2分鐘，立即完成它，而不是加入待辦事項。</li>`;
+                insightsHTML += `<li>使用"瑞士乳酪法"：不必從頭到尾完成任務，可以在方便的時候啃掉一小塊。</li>`;
+            }
+            
+            if (avgEnergyLevel < 5) {
+                insightsHTML += `<li>增加戶外活動時間，即使只是簡短的步行，也能顯著提升能量和心情。</li>`;
+                insightsHTML += `<li>建立穩定的睡眠時間表，確保7-8小時的高質量睡眠。</li>`;
+            }
+            
+            // 根據心情給予具體建議
+            if (mostCommonMood === 'anxious' || mostCommonMood === 'sad') {
+                insightsHTML += `<li>每天練習5分鐘正念冥想，幫助減輕壓力和焦慮。</li>`;
+                insightsHTML += `<li>建立"感恩日記"習慣，每天記錄3件值得感恩的事情。</li>`;
+            }
+            
+            insightsHTML += `
+                    </ul>
+                </div>
+            </div>
+            `;
+            
+            insightsContainer.innerHTML = insightsHTML;
+        }
+
+        // 事件監聽器設置
+        function setupEventListeners() {
+            // 導航切換
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 移除所有按鈕的活動狀態
+                    document.querySelectorAll('.nav-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-100', 'dark:bg-indigo-900', 'text-indigo-700', 'dark:text-indigo-300');
+                        b.classList.add('hover:bg-gray-200', 'dark:hover:bg-gray-700');
+                    });
+                    
+                    // 添加當前按鈕的活動狀態
+                    btn.classList.add('bg-indigo-100', 'dark:bg-indigo-900', 'text-indigo-700', 'dark:text-indigo-300');
+                    btn.classList.remove('hover:bg-gray-200', 'dark:hover:bg-gray-700');
+                    
+                    // 隱藏所有內容區塊
+                    document.querySelectorAll('.content-section').forEach(section => {
+                        section.classList.add('hidden');
+                    });
+                    
+                    // 顯示對應的內容區塊
+                    const targetId = btn.dataset.target;
+                    document.getElementById(targetId).classList.remove('hidden');
+                    
+                    // 如果切換到進度可視化，更新圖表
+                    if (targetId === 'progress-visualization') {
+                        updateVisualization();
+                    }
+                });
+            });
+            
+            // 日曆導航
+            document.getElementById('prev-month').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                updateCalendar();
+            });
+            
+            document.getElementById('next-month').addEventListener('click', () => {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                updateCalendar();
+            });
+            
+            // 能量等級滑塊
+            document.getElementById('energy-level').addEventListener('input', function() {
+                document.getElementById('energy-value').textContent = this.value;
+                
+                // 更新數據
+                const dateStr = formatDate(currentDate);
+                if (!data.dailyState[dateStr]) {
+                    data.dailyState[dateStr] = {};
+                }
+                
+                data.dailyState[dateStr].energy = parseInt(this.value);
+                saveData();
+            });
+            
+            // 心情按鈕
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 移除所有按鈕的活動狀態
+                    document.querySelectorAll('.mood-btn').forEach(b => {
+                        b.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'border-2', 'border-indigo-500');
+                    });
+                    
+                    // 添加當前按鈕的活動狀態
+                    btn.classList.add('bg-gray-100', 'dark:bg-gray-700', 'border-2', 'border-indigo-500');
+                    
+                    // 更新數據
+                    const dateStr = formatDate(currentDate);
+                    if (!data.dailyState[dateStr]) {
+                        data.dailyState[dateStr] = {};
+                    }
+                    
+                    data.dailyState[dateStr].mood = btn.dataset.mood;
+                    saveData();
+                    
+                    // 更新日曆
+                    updateCalendar();
+                });
+            });
+            
+            // 反思情緒按鈕
+            document.querySelectorAll('.reflection-mood-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 切換當前按鈕的活動狀態
+                    btn.classList.toggle('bg-gray-100');
+                    btn.classList.toggle('dark:bg-gray-700');
+                    btn.classList.toggle('border-2');
+                    btn.classList.toggle('border-indigo-500');
+                    
+                    // 更新情緒強度列表
+                    updateSelectedMoods();
+                });
+            });
+            
+            // 添加每日任務按鈕
+            document.getElementById('add-daily-task').addEventListener('click', () => {
+                // 重置表單
+                document.getElementById('daily-task-form').reset();
+                document.getElementById('daily-task-form').dataset.editing = 'false';
+                delete document.getElementById('daily-task-form').dataset.editIndex;
+                delete document.getElementById('daily-task-form').dataset.editDate;
+                
+                // 顯示模態框
+                document.getElementById('add-daily-task-modal').classList.remove('hidden');
+            });
+            
+            // 取消添加任務
+            document.getElementById('cancel-task').addEventListener('click', () => {
+                document.getElementById('add-daily-task-modal').classList.add('hidden');
+            });
+            
+            // 提交任務表單
+            document.getElementById('daily-task-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 獲取表單數據
+                const title = document.getElementById('task-title').value.trim();
+                const category = document.getElementById('task-category').value;
+                const notes = document.getElementById('task-notes').value.trim();
+                const link = document.getElementById('task-link').value.trim();
+                const priority = document.getElementById('task-priority').value;
+                
+                // 驗證
+                if (!title) {
+                    alert('請輸入任務名稱');
+                    return;
+                }
+                
+                // 判斷是編輯還是新增
+                const isEditing = this.dataset.editing === 'true';
+                const currentDateStr = formatDate(currentDate);
+                
+                if (isEditing) {
+                    // 編輯現有任務
+                    if (this.dataset.editDate && this.dataset.editIndex) {
+                        const editIndex = parseInt(this.dataset.editIndex);
+                        const editDateStr = this.dataset.editDate;
+                        
+                        if (!data.tasks[editDateStr]) {
+                            data.tasks[editDateStr] = [];
+                        }
+                        
+                        if (editIndex >= 0 && editIndex < data.tasks[editDateStr].length) {
+                            // 保留completed狀態
+                            const completed = data.tasks[editDateStr][editIndex].completed;
+                            const oldTitle = data.tasks[editDateStr][editIndex].title;
+                            
+                            // 更新當前日期的任務
+                            data.tasks[editDateStr][editIndex] = {
+                                title,
+                                category,
+                                notes,
+                                link,
+                                completed,
+                                priority
+                            };
+                            
+                            // 如果標題已變更，還需要更新所有使用舊標題的任務
+                            if (oldTitle !== title) {
+                                for (const date in data.tasks) {
+                                    if (date !== editDateStr && data.tasks.hasOwnProperty(date) && Array.isArray(data.tasks[date])) {
+                                        data.tasks[date].forEach((task, i) => {
+                                            if (task.title === oldTitle) {
+                                                // 更新除completed外的所有屬性
+                                                data.tasks[date][i] = {
+                                                    ...data.tasks[date][i],
+                                                    title,
+                                                    category,
+                                                    notes,
+                                                    link,
+                                                    priority
+                                                };
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // 這是編輯一個不在當前日期的任務，將它作為新任務添加到當前日期
+                        if (!data.tasks[currentDateStr]) {
+                            data.tasks[currentDateStr] = [];
+                        }
+                        
+                        // 檢查當前日期是否已有同名任務
+                        const existingTaskIndex = data.tasks[currentDateStr].findIndex(t => t.title === title);
+                        
+                        if (existingTaskIndex !== -1) {
+                            // 如果已存在，更新它
+                            data.tasks[currentDateStr][existingTaskIndex] = {
+                                ...data.tasks[currentDateStr][existingTaskIndex],
+                                category,
+                                notes,
+                                link,
+                                priority
+                            };
+                        } else {
+                            // 新增到當前日期
+                            data.tasks[currentDateStr].push({
+                                title,
+                                category,
+                                notes,
+                                link,
+                                completed: false,
+                                priority
+                            });
+                        }
+                        
+                        // 同時更新所有使用相同標題的任務的屬性（但不包括completed狀態）
+                        for (const date in data.tasks) {
+                            if (date !== currentDateStr && data.tasks.hasOwnProperty(date) && Array.isArray(data.tasks[date])) {
+                                data.tasks[date].forEach((task, i) => {
+                                    if (task.title === title) {
+                                        // 更新除completed外的所有屬性
+                                        data.tasks[date][i] = {
+                                            ...data.tasks[date][i],
+                                            category,
+                                            notes,
+                                            link,
+                                            priority
+                                        };
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    // 新增任務
+                    if (!data.tasks[currentDateStr]) {
+                        data.tasks[currentDateStr] = [];
+                    }
+                    
+                    // 檢查是否已存在同名任務
+                    const existingTaskIndex = data.tasks[currentDateStr].findIndex(t => t.title === title);
+                    
+                    if (existingTaskIndex !== -1) {
+                        if (confirm('已存在相同名稱的任務，是否更新現有任務？')) {
+                            // 保留completed狀態
+                            const completed = data.tasks[currentDateStr][existingTaskIndex].completed;
+                            
+                            // 更新現有任務
+                            data.tasks[currentDateStr][existingTaskIndex] = {
+                                title,
+                                category,
+                                notes,
+                                link,
+                                completed,
+                                priority
+                            };
+                        } else {
+                            return; // 用戶取消操作
+                        }
+                    } else {
+                        // 添加新任務
+                        data.tasks[currentDateStr].push({
+                            title,
+                            category,
+                            notes,
+                            link,
+                            completed: false,
+                            priority
+                        });
+                    }
+                }
+                
+                // 保存數據
+                saveData();
+                
+                // 重新加載任務列表
+                loadDailyTasks();
+                
+                // 更新日曆
+                updateCalendar();
+                
+                // 更新統計摘要
+                updateStatsSummary();
+                
+                // 隱藏模態框
+                document.getElementById('add-daily-task-modal').classList.add('hidden');
+                
+                // 重置表單
+                this.reset();
+                this.dataset.editing = 'false';
+                delete this.dataset.editIndex;
+                delete this.dataset.editDate;
+            });
+                
+            // 添加目標按鈕
+            document.getElementById('add-goal').addEventListener('click', () => {
+                // 重置表單
+                document.getElementById('goal-form').reset();
+                document.getElementById('goal-form').dataset.editing = 'false';
+                
+                // 顯示模態框
+                document.getElementById('add-goal-modal').classList.remove('hidden');
+            });
+            
+            // 取消添加目標
+            document.getElementById('cancel-goal').addEventListener('click', () => {
+                document.getElementById('add-goal-modal').classList.add('hidden');
+            });
+            
+            // 編輯目標按鈕
+            document.getElementById('edit-goal').addEventListener('click', () => {
+                if (!currentGoalId) return;
+                
+                // 獲取當前目標
+                const goal = data.goals.find(g => g.id === currentGoalId);
+                if (!goal) return;
+                
+                // 填充表單
+                document.getElementById('goal-title').value = goal.title || '';
+                document.getElementById('goal-why').value = goal.why || '';
+                document.getElementById('goal-category').value = goal.category || 'other';
+                document.getElementById('goal-deadline').value = goal.deadline || '';
+                document.getElementById('goal-specific').value = goal.specific || '';
+                document.getElementById('goal-measurable').value = goal.measurable || '';
+                document.getElementById('goal-achievable').value = goal.achievable || '';
+                document.getElementById('goal-relevant').value = goal.relevant || '';
+                document.getElementById('goal-timebound').value = goal.timebound || '';
+                
+                // 設置標誌，表示正在編輯而不是新增
+                document.getElementById('goal-form').dataset.editing = 'true';
+                
+                // 顯示模態框
+                document.getElementById('add-goal-modal').classList.remove('hidden');
+            });
+            
+            // 刪除目標按鈕
+            document.getElementById('delete-goal').addEventListener('click', () => {
+                if (!currentGoalId) return;
+                
+                if (confirm('確定要刪除這個目標嗎？相關的子任務也會被刪除。')) {
+                    // 從數據中刪除目標
+                    const goalIndex = data.goals.findIndex(g => g.id === currentGoalId);
+                    if (goalIndex !== -1) {
+                        data.goals.splice(goalIndex, 1);
+                    }
+                    
+                    // 刪除相關的子任務
+                    if (data.subtasks[currentGoalId]) {
+                        delete data.subtasks[currentGoalId];
+                    }
+                    
+                    // 重置當前目標
+                    currentGoalId = null;
+                    
+                    // 保存並重新加載
+                    saveData();
+                    loadGoals();
+                    
+                    // 更新統計摘要
+                    updateStatsSummary();
+                }
+            });
+            
+            // 提交目標表單
+            document.getElementById('goal-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 獲取表單數據
+                const title = document.getElementById('goal-title').value.trim();
+                const why = document.getElementById('goal-why').value.trim();
+                const category = document.getElementById('goal-category').value;
+                const deadline = document.getElementById('goal-deadline').value;
+                const specific = document.getElementById('goal-specific').value.trim();
+                const measurable = document.getElementById('goal-measurable').value.trim();
+                const achievable = document.getElementById('goal-achievable').value.trim();
+                const relevant = document.getElementById('goal-relevant').value.trim();
+                const timebound = document.getElementById('goal-timebound').value.trim();
+                
+                // 驗證
+                if (!title || !why || !specific || !measurable || !achievable || !relevant || !timebound) {
+                    alert('請填寫所有必填欄位');
+                    return;
+                }
+                
+                // 判斷是編輯還是新增
+                const isEditing = this.dataset.editing === 'true';
+                
+                if (isEditing) {
+                    // 編輯現有目標
+                    const goalIndex = data.goals.findIndex(g => g.id === currentGoalId);
+                    if (goalIndex !== -1) {
+                        // 保留進度和ID
+                        const progress = data.goals[goalIndex].progress || 0;
+                        const id = data.goals[goalIndex].id;
+                        
+                        data.goals[goalIndex] = {
+                            id,
+                            title,
+                            why,
+                            category,
+                            deadline,
+                            specific,
+                            measurable,
+                            achievable,
+                            relevant,
+                            timebound,
+                            progress
+                        };
+                    }
+                } else {
+                    // 新增目標
+                    const newGoal = {
+                        id: generateId(),
+                        title,
+                        why,
+                        category,
+                        deadline,
+                        specific,
+                        measurable,
+                        achievable,
+                        relevant,
+                        timebound,
+                        progress: 0
+                    };
+                    
+                    data.goals.push(newGoal);
+                    
+                    // 設置當前目標為新增的目標
+                    currentGoalId = newGoal.id;
+                }
+                
+                // 保存數據
+                saveData();
+                
+                // 重新加載目標列表
+                loadGoals();
+                
+                // 更新統計摘要
+                updateStatsSummary();
+                
+                // 隱藏模態框
+                document.getElementById('add-goal-modal').classList.add('hidden');
+            });
+            
+            // 添加子任務按鈕
+            document.getElementById('add-subtask').addEventListener('click', () => {
+                if (!currentGoalId) return;
+                
+                // 重置表單
+                document.getElementById('subtask-form').reset();
+                document.getElementById('subtask-form').dataset.editing = 'false';
+                
+                // 顯示模態框
+                document.getElementById('add-subtask-modal').classList.remove('hidden');
+            });
+            
+            // 取消添加子任務
+            document.getElementById('cancel-subtask').addEventListener('click', () => {
+                document.getElementById('add-subtask-modal').classList.add('hidden');
+            });
+            
+            // 提交子任務表單
+            document.getElementById('subtask-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!currentGoalId) return;
+                
+                // 獲取表單數據
+                const title = document.getElementById('subtask-title').value.trim();
+                const description = document.getElementById('subtask-description').value.trim();
+                const link = document.getElementById('subtask-link').value.trim();
+                const deadline = document.getElementById('subtask-deadline').value;
+                
+                // 驗證
+                if (!title) {
+                    alert('請輸入子任務名稱');
+                    return;
+                }
+                
+                // 判斷是編輯還是新增
+                const isEditing = this.dataset.editing === 'true';
+                
+                if (isEditing) {
+                    // 編輯現有子任務
+                    const editIndex = parseInt(this.dataset.editIndex);
+                    
+                    if (!data.subtasks[currentGoalId]) {
+                        data.subtasks[currentGoalId] = [];
+                    }
+                    
+                    if (editIndex >= 0 && editIndex < data.subtasks[currentGoalId].length) {
+                        // 保留completed狀態
+                        const completed = data.subtasks[currentGoalId][editIndex].completed;
+                        
+                        data.subtasks[currentGoalId][editIndex] = {
+                            title,
+                            description,
+                            link,
+                            deadline,
+                            completed
+                        };
+                    }
+                } else {
+                    // 新增子任務
+                    if (!data.subtasks[currentGoalId]) {
+                        data.subtasks[currentGoalId] = [];
+                    }
+                    
+                    data.subtasks[currentGoalId].push({
+                        title,
+                        description,
+                        link,
+                        deadline,
+                        completed: false
+                    });
+                }
+                
+                // 更新目標進度
+                updateGoalProgress();
+                
+                // 保存數據
+                saveData();
+                
+                // 重新加載子任務列表和目標列表
+                loadSubtasks();
+                loadGoals();
+                
+                // 更新統計摘要
+                updateStatsSummary();
+                
+                // 隱藏模態框
+                document.getElementById('add-subtask-modal').classList.add('hidden');
+            });
+            
+            // 保存反思按鈕
+            document.getElementById('save-reflection').addEventListener('click', () => {
+                saveReflection();
+            });
+            
+            // 日期範圍按鈕
+            document.querySelectorAll('.date-range-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 移除所有按鈕的活動狀態
+                    document.querySelectorAll('.date-range-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-100', 'dark:bg-indigo-900', 'text-indigo-700', 'dark:text-indigo-300');
+                        b.classList.add('bg-gray-100', 'dark:bg-gray-700', 'hover:bg-gray-200', 'dark:hover:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                    });
+                    
+                    // 添加當前按鈕的活動狀態
+                    btn.classList.add('bg-indigo-100', 'dark:bg-indigo-900', 'text-indigo-700', 'dark:text-indigo-300');
+                    btn.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'hover:bg-gray-200', 'dark:hover:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                    
+                    // 更新日期範圍
+                    dateRangeForVisualization = parseInt(btn.dataset.range);
+                    
+                    // 更新可視化
+                    updateVisualization();
+                });
+            });
+            
+            // 應用自訂日期範圍
+            document.getElementById('apply-custom-range').addEventListener('click', () => {
+                const startDate = document.getElementById('date-range-start').value;
+                const endDate = document.getElementById('date-range-end').value;
+                
+                if (!startDate || !endDate) {
+                    alert('請選擇開始和結束日期');
+                    return;
+                }
+                
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                if (start > end) {
+                    alert('開始日期不能晚於結束日期');
+                    return;
+                }
+                
+                // 計算日期範圍天數
+                const dayDiff = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                dateRangeForVisualization = dayDiff;
+                
+                // 移除所有按鈕的活動狀態
+                document.querySelectorAll('.date-range-btn').forEach(b => {
+                    b.classList.remove('bg-indigo-100', 'dark:bg-indigo-900', 'text-indigo-700', 'dark:text-indigo-300');
+                    b.classList.add('bg-gray-100', 'dark:bg-gray-700', 'hover:bg-gray-200', 'dark:hover:bg-gray-600', 'text-gray-700', 'dark:text-gray-300');
+                });
+                
+                // 更新可視化
+                updateVisualization();
+            });
+            
+            // 換一則按鈕點擊事件
+            document.getElementById('change-image-btn').addEventListener('click', function() {
+                // 選擇隨機激勵語錄
+                const randomQuote = getRandomItem(motivationalQuotes);
+                document.getElementById('motivation-quote').textContent = randomQuote;
+                
+                // 載入隨機圖片
+                loadRandomImage();
+            });
+        }
+
+        // 更新選擇的情緒列表
+        function updateSelectedMoods() {
+            const selectedMoods = [];
+            document.querySelectorAll('.reflection-mood-btn.border-2').forEach(btn => {
+                selectedMoods.push({
+                    name: btn.dataset.mood,
+                    intensity: 3 // 默認強度
+                });
+            });
+            
+            // 更新情緒強度列表
+            const moodsContainer = document.getElementById('selected-moods-container');
+            moodsContainer.innerHTML = '';
+            
+            if (selectedMoods.length === 0) {
+                moodsContainer.innerHTML = '<div class="text-gray-500 dark:text-gray-400 text-sm italic">請從上方選擇一或多個情緒</div>';
+                return;
+            }
+            
+            selectedMoods.forEach(mood => {
+                const moodItem = document.createElement('div');
+                moodItem.className = 'flex items-center gap-2';
+                moodItem.innerHTML = `
+                    <span class="text-sm">${getMoodEmoji(mood.name)} ${getMoodName(mood.name)}</span>
+                    <input type="range" min="1" max="5" value="${mood.intensity}" class="flex-1 h-2" data-mood="${mood.name}">
+                    <span class="text-sm">${mood.intensity}</span>
+                `;
+                
+                // 監聽滑塊變化
+                const slider = moodItem.querySelector('input[type="range"]');
+                const valueDisplay = moodItem.querySelector('span:last-child');
+                slider.addEventListener('input', () => {
+                    valueDisplay.textContent = slider.value;
+                });
+                
+                moodsContainer.appendChild(moodItem);
+            });
+        }
+
+        // 保存反思數據
+        function saveReflection() {
+            const dateStr = formatDate(currentDate);
+            
+            // 收集所選情緒及其強度
+            const selectedMoods = [];
+            document.querySelectorAll('#selected-moods-container input[type="range"]').forEach(slider => {
+                selectedMoods.push({
+                    name: slider.dataset.mood,
+                    intensity: parseInt(slider.value)
+                });
+            });
+            
+            // 收集表單數據
+            const reflectionData = {
+                good: document.getElementById('reflection-good').value.trim(),
+                improve: document.getElementById('reflection-improve').value.trim(),
+                lessons: document.getElementById('reflection-lessons').value.trim(),
+                tomorrow: document.getElementById('reflection-tomorrow').value.trim(),
+                moods: selectedMoods,
+                emotionTriggers: document.getElementById('emotion-triggers').value.trim(),
+                negativeThoughts: document.getElementById('negative-thoughts').value.trim(),
+                triggerSituation: document.getElementById('trigger-situation').value.trim(),
+                thoughtRebuttal: document.getElementById('thought-rebuttal').value.trim(),
+                balancedThought: document.getElementById('balanced-thought').value.trim()
+            };
+            
+            // 保存數據
+            data.reflections[dateStr] = reflectionData;
+            saveData();
+            
+            // 顯示成功訊息
+            showMessageBox('反思已成功保存！');
+        }
+
+        // 應用初始化
+        function initializeApp() {
+            // 初始化數據
+            initializeData();
+            
+            // 設置事件監聽器
+            setupEventListeners();
+            
+            // 更新日曆視圖
+            updateCalendar();
+            
+            // 載入當前日期的數據
+            loadDailyData();
+            
+            // 載入目標列表
+            loadGoals();
+            
+            // 更新統計摘要
+            updateStatsSummary();
+            
+            // 生成每日靈感
+            generateDailyInspiration();
+            
+            // 初始化圖表
+            initializeCharts();
+        }
+
+        // 啟動應用
+        initializeApp();
+    </script>
+    
+    <!-- YouTube API 和播放器功能 -->
+    <!-- <script>
+    // YouTube API 回調函數
+    function onYouTubeIframeAPIReady() {
+        if (typeof player === 'undefined' && document.getElementById('youtube-player')) {
+            createPlayer();
+        }
+    }
+    </script>
+
+    <!-- 添加修復後的音樂播放器腳本 -->
+    
+
+    <script src="playlistitems.js"></script>
+</body>
+</html>
